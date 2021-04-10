@@ -121,7 +121,7 @@ ExecutionMode executionMode = null;
 
      long cardinalityBound = children.get(0).getCardinalityBound();
      if(children.size() > 1) {
-       cardinalityBound =  children.get(2).getCardinalityBound() * cardinalityBound;
+       cardinalityBound =  children.get(1).getCardinalityBound() * cardinalityBound;
 
      }
      return cardinalityBound;
