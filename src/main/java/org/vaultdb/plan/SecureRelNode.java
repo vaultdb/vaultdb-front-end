@@ -3,8 +3,19 @@ package org.vaultdb.plan;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import org.apache.calcite.plan.RelOptUtil;
 import org.apache.calcite.rel.RelNode;
+import org.apache.calcite.rel.logical.LogicalValues;
+import org.apache.calcite.rel.rel2sql.RelToSqlConverter;
+import org.apache.calcite.sql.SqlExplainFormat;
+import org.apache.calcite.sql.SqlExplainLevel;
+import org.apache.calcite.sql.SqlSelect;
+import org.apache.calcite.tools.FrameworkConfig;
+import org.apache.calcite.tools.RelBuilder;
+import org.vaultdb.config.ExecutionMode;
+import org.vaultdb.config.SystemConfiguration;
 import org.vaultdb.plan.operator.AttributeResolver;
 import org.vaultdb.plan.operator.Operator;
 import org.vaultdb.type.SecureRelRecordType;
@@ -82,7 +93,5 @@ public class SecureRelNode implements Serializable {
 	}
 
 
-	
-	
 
 }

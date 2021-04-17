@@ -2,11 +2,17 @@ package org.vaultdb.plan.operator;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
+import org.apache.calcite.plan.RelOptUtil;
+import org.apache.calcite.rel.RelWriter;
+import org.apache.calcite.rel.externalize.RelJsonWriter;
 import org.apache.calcite.rel.logical.LogicalJoin;
 import org.apache.calcite.rex.RexNode;
 import org.apache.calcite.rex.RexUtil;
+import org.apache.calcite.sql.SqlExplainFormat;
+import org.apache.calcite.sql.SqlExplainLevel;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.vaultdb.config.SystemConfiguration;
 import org.vaultdb.config.ExecutionMode;
@@ -355,6 +361,14 @@ ExecutionMode executionMode = null;
   @Override
   public int hashCode() {
     return new HashCodeBuilder(17, 31).append(this.toString()).toHashCode();
+  }
+
+  // if a MPC operator implementation leverages the order of tuples for comparisons, codify that in
+  // this function
+  // otherwise empty set = order agnostic
+  // order is implicitly ascending
+  public List<SecureRelDataTypeField> secureComputeOrder() {
+    return new ArrayList<SecureRelDataTypeField>();
   }
 
 

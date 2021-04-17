@@ -1,13 +1,10 @@
 package org.vaultdb.planner;
 
-import java.util.List;
 import java.util.logging.Level;
 
 import org.apache.calcite.plan.RelOptUtil;
 import org.vaultdb.TpcHBaseTest;
 import org.vaultdb.plan.SecureRelRoot;
-
-import com.google.common.collect.ImmutableList;
 
 // basically need a broader model for deciding whether to execute in the clear or obliviously:
 // * sensitivity of attributes we compute on
@@ -66,7 +63,7 @@ public class NaiveCardinalityTpcHTest extends TpcHBaseTest {
     String testName = "q" + queryNo;
 
     logger.log(Level.INFO, "Parsing " + sql);
-    SecureRelRoot secRoot = new SecureRelRoot(testName, sql);
+    SecureRelRoot secRoot = new SecureRelRoot(testName, sql, true);
 
     logger.log(Level.INFO, "Parsed " + RelOptUtil.toString(secRoot.getRelRoot().project()));
 

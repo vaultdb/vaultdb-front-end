@@ -1,31 +1,26 @@
 package org.vaultdb.plan;
 
-import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.RelRoot;
-import org.apache.calcite.rel.core.AggregateCall;
-import org.apache.calcite.rel.logical.*;
-import org.apache.calcite.util.ImmutableBitSet;
-import org.apache.calcite.util.Pair;
 import org.vaultdb.config.SystemConfiguration;
 import org.vaultdb.parser.SqlStatementParser;
 import org.vaultdb.parser.TreeBuilder;
 import org.vaultdb.plan.operator.Operator;
-
-import java.util.logging.Logger;
 
 public class SecureRelRoot {
 	RelRoot baseRoot;
 	Operator treeRoot;
 	String name;
 	
-	public SecureRelRoot(String queryName, String sql) throws Exception {
+	public SecureRelRoot(String queryName, String sql, boolean trimFields) throws Exception {
 		SqlStatementParser parser = new SqlStatementParser();
 
 
 	
 		baseRoot = parser.convertSqlToRelMinFields(sql);
 		baseRoot = parser.optimize(baseRoot); // optimized to represent in a fine granularity for more smc avoidance
-		baseRoot = parser.trimFields(baseRoot); // use minimal set of fields to avoid triggering unnecessary SMC
+		if(trimFields) {
+			baseRoot = parser.trimFields(baseRoot); // use minimal set of fields to avoid triggering unnecessary SMC
+		}
 		baseRoot = parser.mergeProjects(baseRoot); // drop any unnecessary steps in the plan
 
 		name = (queryName == null) ? SystemConfiguration.getInstance().getQueryName() : queryName.replaceAll("-", "_");

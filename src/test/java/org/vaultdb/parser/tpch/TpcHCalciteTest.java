@@ -171,11 +171,12 @@ public class TpcHCalciteTest extends TpcHBaseTest {
 	  	  // see if we can deprecate it
 	  	  SystemConfiguration.getInstance().setProperty("code-generator-mode","debug");
 
-		  SecureRelRoot root = new SecureRelRoot(testName, sql);
+		  SecureRelRoot root = new SecureRelRoot(testName, sql, true);
 
 
 		  String plan = RelOptUtil.dumpPlan("", root.getRelRoot().rel, SqlExplainFormat.TEXT, SqlExplainLevel.ALL_ATTRIBUTES);
 
+		//  String json = RelOptUtil.dumpPlan("", root.getRelRoot().rel, SqlExplainFormat.TEXT, SqlExplainLevel.);
 		  logger.info("Parsed plan for " + testName + ":\n" + plan);
 
 

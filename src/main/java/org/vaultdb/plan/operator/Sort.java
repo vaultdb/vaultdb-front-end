@@ -61,6 +61,7 @@ public class Sort extends Operator {
 		RelCollation collation = sort.getCollation();
 		return collation.getFieldCollations().get(0).direction;
 	}
-	
+
+
 
 }

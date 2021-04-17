@@ -20,5 +20,10 @@ public class Distinct extends Operator {
 
 
 
+	public List<SecureRelDataTypeField> secureComputeOrder() {
+
+
+		return getSchema().getSecureFieldList(); // all inputs to distinct are in order-by
+	}
 	
 }

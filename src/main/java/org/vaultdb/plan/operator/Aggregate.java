@@ -184,5 +184,14 @@ public class Aggregate extends Operator {
 	}
 
 
-	
-};
+	public List<SecureRelDataTypeField> secureComputeOrder() {
+		List<Integer> groupBy = agg.getGroupSet().asList();
+		List<SecureRelDataTypeField> orderBy = new ArrayList<SecureRelDataTypeField>();
+		SecureRelRecordType inSchema = this.getInSchema();
+
+		for (Integer i : groupBy)
+			orderBy.add(inSchema.getSecureField(i));
+
+		return orderBy;
+	}
+}
