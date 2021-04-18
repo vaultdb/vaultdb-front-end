@@ -1,4 +1,4 @@
-package org.vaultdb.parser.tpch;
+package org.vaultdb.planner;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.calcite.plan.RelOptUtil;
@@ -15,6 +15,8 @@ import org.vaultdb.TpcHBaseTest;
 import org.vaultdb.codegen.JSONGenerator;
 import org.vaultdb.config.SystemConfiguration;
 import org.vaultdb.plan.SecureRelRoot;
+import org.vaultdb.util.FileUtilities;
+import org.vaultdb.util.Utilities;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -81,7 +83,19 @@ public class QueryPlanToJSONTest extends TpcHBaseTest {
         System.out.println("Parsing " + sql);
         SecureRelRoot root = new SecureRelRoot(testName, sql, false);
 
-        // use this to write out the specs for secure nodes
+        String logicalPlan = RelOptUtil.dumpPlan("", root.getRelRoot().rel, SqlExplainFormat.TEXT, SqlExplainLevel.ALL_ATTRIBUTES);
+        System.out.println("Logical plan: " + root);
+
+        String plan = JSONGenerator.exportQueryPlan(root.getPlanRoot().getSecureRelNode(), testName);
+        logger.info("Parsed plan for " + testName + ":\n" + plan);
+
+
+
+    }
+
+
+    /* scratch:
+            // use this to write out the specs for secure nodes
         RelWriter planWriter = new RelJsonWriter();
         Map<Integer, String> sqlInputs = new HashMap<Integer, String>(); // map operator ID to a SQL statement
 
@@ -112,15 +126,6 @@ public class QueryPlanToJSONTest extends TpcHBaseTest {
 
 
 */
-        String logicalPlan = RelOptUtil.dumpPlan("", root.getRelRoot().rel, SqlExplainFormat.TEXT, SqlExplainLevel.ALL_ATTRIBUTES);
-        System.out.println("Logical plan: " + root);
-
-        Map<Integer, String> plan = JSONGenerator.exportQueryPlan(root.getPlanRoot().getSecureRelNode());
-        logger.info("Parsed plan for " + testName + ":\n" + plan);
-
-
-    }
-
 
 
 

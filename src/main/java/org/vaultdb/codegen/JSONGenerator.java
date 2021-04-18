@@ -13,6 +13,8 @@ import org.apache.calcite.tools.RelBuilder;
 import org.vaultdb.codegen.sql.SqlGenerator;
 import org.vaultdb.config.SystemConfiguration;
 import org.vaultdb.plan.SecureRelNode;
+import org.vaultdb.util.FileUtilities;
+import org.vaultdb.util.Utilities;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,7 +22,7 @@ import java.util.Map;
 public class JSONGenerator {
     // returns JSON of the MPC query tree
     // populates map with <Calcite OperatorID, SQL string > OR <operator ID, JSON> pairs
-    public static Map<Integer, String> exportQueryPlan(SecureRelNode secureRelNode) throws Exception {
+    public static String exportQueryPlan(SecureRelNode secureRelNode, String testName) throws Exception {
         Map<RelNode, RelNode> replacements = new HashMap<RelNode, RelNode>();
         Map<Integer, String> planNodes =  new HashMap<Integer, String>();
         replacements = exportQueryPlanHelper(secureRelNode, replacements, planNodes);
@@ -30,11 +32,27 @@ public class JSONGenerator {
             localCopy = RelOptUtil.replace(localCopy, entry.getKey(), entry.getValue());
         }
 
-        Integer rootID = localCopy.getId();
-        String rootJSON =  RelOptUtil.dumpPlan("", localCopy, SqlExplainFormat.JSON, SqlExplainLevel.DIGEST_ATTRIBUTES);
-        planNodes.put(rootID, rootJSON);
 
-        return planNodes;
+        // write it into one long output
+        String sqlOutput = new String();
+        // first SQL statements:
+        for(Map.Entry<Integer, String> entry : planNodes.entrySet()) {
+            sqlOutput += "-- " + entry.getKey()   + "\n" + entry.getValue() + "\n";
+
+        }
+
+        // now add the root node
+        //Integer rootID = localCopy.getId();
+        String rootJSON =  RelOptUtil.dumpPlan("", localCopy, SqlExplainFormat.JSON, SqlExplainLevel.DIGEST_ATTRIBUTES);
+
+        String outFilename = Utilities.getVaultDBRoot() + "/src/test/java/org/vaultdb/test/plans/mpc-" + testName + ".json";
+        FileUtilities.writeFile(outFilename, rootJSON);
+
+        String sqlFile = Utilities.getVaultDBRoot() + "/src/test/java/org/vaultdb/test/plans/queries-" + testName + ".sql";
+        FileUtilities.writeFile(sqlFile, sqlOutput);
+
+        return sqlOutput + "[root=" + rootJSON+ "]";
+
     }
 
     // replace plaintext subtrees with their corresponding SQL statements
@@ -43,20 +61,15 @@ public class JSONGenerator {
         for(SecureRelNode child : relNode.getChildren()) {
             // if a local plan, replace with SQL and terminate, otherwise recurse
             if(!child.getPhysicalNode().getExecutionMode().distributed) {
-                Integer operatorId = child.getRelNode().getId();
+                //Integer operatorId = child.getRelNode().getId();
+                Integer operatorNo = sqlNodes.size();
                 String sql = SqlGenerator.getSourceSql(child.getPhysicalNode());
-                sqlNodes.put(operatorId, sql);
+                sqlNodes.put(operatorNo, sql);
 
                 // create an empty leaf
                 FrameworkConfig calciteConfig =  SystemConfiguration.getInstance().getCalciteConfiguration();
                 final RelBuilder builder = RelBuilder.create(calciteConfig);
-
                 final RelNode leaf =  builder.values(child.getRelNode().getRowType()).build();
-
-                // values encoded in tuple object of JSON
-                //builder
-                //        .values(new String[] {"operator-id", "sql statement"}, operatorId, sql);
-                //LogicalValues secureLeaf = (LogicalValues) builder.build();
 
                 replacements.put(child.getRelNode(), leaf);
             }

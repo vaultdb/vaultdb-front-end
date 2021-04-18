@@ -59,7 +59,8 @@ public class SqlGenerator {
 
 
 		// create list for dummyTags regardless of value ( both true and false will be represented)
-		SqlNodeList newSelection = sql.getSelectList();;
+        SqlNodeList selections = sql.getSelectList();
+		SqlNodeList newSelection = sql.getSelectList();
 
 		SqlNode where = sql.getWhere();
 		SqlNode dummyTag = null;
@@ -75,18 +76,20 @@ public class SqlGenerator {
 			SqlBasicCall notWhere = new SqlBasicCall(SqlStdOperatorTable.NOT, new SqlNode[]{where}, newSelection.getParserPosition());
 			dummyTag = addAlias(notWhere, "dummy_tag");
 			sql.setWhere(null);
-		}
-		else { // where is null, still want dummy tag
-				SqlLiteral dummy = SqlLiteral.createBoolean(false, newSelection.getParserPosition());
-				dummyTag = addAlias(dummy, "dummy_tag");
-		}
-		newSelection.add(dummyTag);
-		sql.setSelectList(newSelection);
+            newSelection.add(dummyTag);
+            sql.setSelectList(newSelection);
+
+        }
+		//else { // where is null, still want dummy tag
+		//		SqlLiteral dummy = SqlLiteral.createBoolean(false, newSelection.getParserPosition());
+		//		dummyTag = addAlias(dummy, "dummy_tag");
+		//}
 
 
 
 		String sqlOut = sql.toSqlString(dialect).getSql();
-		sqlOut = sqlOut.replace("\"", "");
+		sqlOut = sqlOut.replace("\"", ""); // correct quotes
+        sqlOut = sqlOut.replace("$", "");
 
 
 		return sqlOut;

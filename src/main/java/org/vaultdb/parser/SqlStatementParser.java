@@ -216,6 +216,7 @@ public class SqlStatementParser {
 		     optimizer.setRoot(relRoot.rel);
 		 		    
 		    RelNode out = optimizer.findBestExp();
+		    logger.fine("after optimizer: " + RelOptUtil.dumpPlan("", out, SqlExplainFormat.TEXT, SqlExplainLevel.ALL_ATTRIBUTES) );
 		    return RelRoot.of(out, relRoot.kind);
 
 	}
@@ -246,6 +247,7 @@ public class SqlStatementParser {
 	      
 	      final boolean ordered = !root.collation.getFieldCollations().isEmpty();
 	      RelNode trimmed = converter.trimUnusedFields(ordered, root.rel);
+		logger.fine("after trim fields: " + RelOptUtil.dumpPlan("", trimmed, SqlExplainFormat.TEXT, SqlExplainLevel.ALL_ATTRIBUTES) );
 
 	      return root.withRel(trimmed);
 	      
@@ -325,6 +327,8 @@ public class SqlStatementParser {
 		    merger.setRoot(root.project());
 
 		    RelNode out = merger.findBestExp();
+
+			logger.fine("After merge: " +  RelOptUtil.dumpPlan("", out, SqlExplainFormat.TEXT, SqlExplainLevel.ALL_ATTRIBUTES) );
 		    return RelRoot.of(out, root.kind);
 		
 	}	

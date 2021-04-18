@@ -3,7 +3,7 @@
 schema-name=tpch
 local-codegen-target=src/main/java/org/vaultdb/compiler/emp/generated
 data-providers=conf/connections/tpch-hosts
-has-partitioning=true
+has-partitioning=false
 
 
 mpc-lib=emp
