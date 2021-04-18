@@ -1,22 +1,13 @@
 package org.vaultdb.planner;
 
-import com.google.common.collect.ImmutableList;
 import org.apache.calcite.plan.RelOptUtil;
 import org.apache.calcite.rel.RelNode;
-import org.apache.calcite.rel.RelWriter;
-import org.apache.calcite.rel.externalize.RelJsonWriter;
-import org.apache.calcite.rel.logical.LogicalValues;
-import org.apache.calcite.rex.RexLiteral;
 import org.apache.calcite.sql.SqlExplainFormat;
 import org.apache.calcite.sql.SqlExplainLevel;
-import org.apache.calcite.tools.FrameworkConfig;
-import org.apache.calcite.tools.RelBuilder;
 import org.vaultdb.TpcHBaseTest;
 import org.vaultdb.codegen.JSONGenerator;
 import org.vaultdb.config.SystemConfiguration;
 import org.vaultdb.plan.SecureRelRoot;
-import org.vaultdb.util.FileUtilities;
-import org.vaultdb.util.Utilities;
 
 import java.util.ArrayList;
 import java.util.HashMap;
