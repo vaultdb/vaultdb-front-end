@@ -17,6 +17,11 @@ public class Project extends Operator {
 		// always takes on the execution mode of its child since it runs deterministically
 		executionMode = new ExecutionMode(child.executionMode);
 	}
+
+	@Override
+	public long getObliviousCardinality() {
+		return getChild(0).getObliviousCardinality();
+	}
 	
 
 }

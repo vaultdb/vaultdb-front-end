@@ -262,6 +262,10 @@ ExecutionMode executionMode = null;
 	  return children.size();
   }
 
+  public long getObliviousCardinality() {
+    return children.get(0).getObliviousCardinality();
+  }
+
   // what fields does this operator reveal information on?
   // some, like SeqScan and Project reveal nothing in their output based on the contents of the
   // tuples they process

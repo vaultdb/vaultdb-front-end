@@ -93,6 +93,11 @@ public class Aggregate extends Operator {
 		return super.getCardinalityBound();
 	}
 
+	@Override
+	public long getObliviousCardinality() {
+		return getChild(0).getObliviousCardinality();
+	}
+
 
 	// is this a scalar aggregate with no distributed children?
 	public boolean splitAggregate() {

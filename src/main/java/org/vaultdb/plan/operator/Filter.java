@@ -30,6 +30,11 @@ public class Filter extends Operator {
 			return children.get(0).getCardinalityBound();
 	}
 
+	@Override
+	public long getObliviousCardinality() {
+		return getChild(0).getObliviousCardinality();
+	}
+
 
 
 }

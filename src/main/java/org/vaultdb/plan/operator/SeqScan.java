@@ -57,6 +57,15 @@ public class SeqScan extends Operator {
 		return obliviousCardinality.left + obliviousCardinality.right;
 	}
 
+	@Override
+	public long getObliviousCardinality() {
+		Pair<Long, Long> obliviousCardinality = catalog.getTableCardinalities(tableName);
+		if (catalog.isReplicated(tableName)){
+			return obliviousCardinality.left;
+		}
+		return obliviousCardinality.left + obliviousCardinality.right;
+	}
+
 	private List<String> getOrderableFields() {
 		List<String> fieldNames = new ArrayList<String>();
 		Operator parent = this.parent;

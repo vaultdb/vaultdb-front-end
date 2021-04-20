@@ -62,4 +62,13 @@ public class Join extends Operator {
         return super.getCardinalityBound();
 	}
 
+	@Override
+	public long getObliviousCardinality() {
+		long cardinality=1;
+		for (Operator child: this.getChildren()){
+			cardinality*=child.getObliviousCardinality();
+		}
+		return cardinality;
+	}
+
 }

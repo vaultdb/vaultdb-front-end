@@ -53,6 +53,11 @@ public class Sort extends Operator {
 		return computesOn();
 	}
 
+	@Override
+	public long getObliviousCardinality() {
+		return getChild(0).getObliviousCardinality();
+	}
+
 	
 
 	public RelFieldCollation.Direction getSortDirection() {
