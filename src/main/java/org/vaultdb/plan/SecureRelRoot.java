@@ -1,9 +1,6 @@
 package org.vaultdb.plan;
 
-import org.apache.calcite.plan.RelOptUtil;
 import org.apache.calcite.rel.RelRoot;
-import org.apache.calcite.sql.SqlExplainFormat;
-import org.apache.calcite.sql.SqlExplainLevel;
 import org.vaultdb.config.SystemConfiguration;
 import org.vaultdb.parser.SqlStatementParser;
 import org.vaultdb.parser.TreeBuilder;
@@ -14,16 +11,16 @@ public class SecureRelRoot {
 	Operator treeRoot;
 	String name;
 	
-	public SecureRelRoot(String queryName, String sql, boolean trimFields) throws Exception {
+	public SecureRelRoot(String queryName, String sql) throws Exception {
 		SqlStatementParser parser = new SqlStatementParser();
 
 
 	
 		baseRoot = parser.convertSqlToRelMinFields(sql);
 		baseRoot = parser.optimize(baseRoot); // optimized to represent in a fine granularity for more smc avoidance
-		if(trimFields) {
-			baseRoot = parser.trimFields(baseRoot); // use minimal set of fields to avoid triggering unnecessary SMC
-		}
+
+		baseRoot = parser.trimFields(baseRoot); // use minimal set of fields to avoid triggering unnecessary SMC
+
 		baseRoot = parser.mergeProjects(baseRoot); // drop any unnecessary steps in the plan
 
 		name = (queryName == null) ? SystemConfiguration.getInstance().getQueryName() : queryName.replaceAll("-", "_");

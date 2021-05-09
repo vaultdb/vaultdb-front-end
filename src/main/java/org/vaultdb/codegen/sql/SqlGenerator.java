@@ -69,6 +69,7 @@ public class SqlGenerator {
 			if (newSelection == null) {
 				SqlParserPos pos = sql.getParserPosition();
 				SqlNode star = (SqlNode) SqlIdentifier.star(pos); // check to see what is being inserted
+				newSelection = new SqlNodeList(pos);
 				newSelection.add(star);
 
 			}

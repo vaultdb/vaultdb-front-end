@@ -63,7 +63,7 @@ public class NaiveCardinalityTpcHTest extends TpcHBaseTest {
     String testName = "q" + queryNo;
 
     logger.log(Level.INFO, "Parsing " + sql);
-    SecureRelRoot secRoot = new SecureRelRoot(testName, sql, true);
+    SecureRelRoot secRoot = new SecureRelRoot(testName, sql);
 
     logger.log(Level.INFO, "Parsed " + RelOptUtil.toString(secRoot.getRelRoot().project()));
 

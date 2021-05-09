@@ -83,6 +83,7 @@ public class SqlStatementParser {
 		    builder.addRuleClass(AggregateExpandDistinctAggregatesRule.class);
 		    builder.addRuleClass(ProjectToWindowRule.class);
 		    builder.addRuleClass(SortProjectTransposeRule.class);
+		    builder.addRuleClass(SortJoinTransposeRule.class);
 		    builder.addRuleClass(FilterMergeRule.class);
 		    builder.addRuleClass(ProjectWindowTransposeRule.class);
 		    builder.addRuleClass(FilterProjectTransposeRule.class);

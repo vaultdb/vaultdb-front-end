@@ -2,6 +2,7 @@ package org.vaultdb.codegen;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.calcite.plan.RelOptUtil;
+import org.apache.calcite.rel.RelCollation;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.logical.LogicalValues;
 import org.apache.calcite.rel.rel2sql.RelToSqlConverter;
@@ -17,6 +18,7 @@ import org.vaultdb.util.FileUtilities;
 import org.vaultdb.util.Utilities;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class JSONGenerator {
@@ -43,9 +45,9 @@ public class JSONGenerator {
 
         // now add the root node
         //Integer rootID = localCopy.getId();
-        String rootJSON =  RelOptUtil.dumpPlan("", localCopy, SqlExplainFormat.JSON, SqlExplainLevel.DIGEST_ATTRIBUTES);
-
+        String rootJSON =  RelOptUtil.dumpPlan("", localCopy, SqlExplainFormat.JSON, SqlExplainLevel.EXPPLAN_ATTRIBUTES); // was digest_attributes
         String outFilename = Utilities.getVaultDBRoot() + "/src/test/java/org/vaultdb/test/plans/mpc-" + testName + ".json";
+
         FileUtilities.writeFile(outFilename, rootJSON);
 
         String sqlFile = Utilities.getVaultDBRoot() + "/src/test/java/org/vaultdb/test/plans/queries-" + testName + ".sql";
@@ -61,8 +63,14 @@ public class JSONGenerator {
         for(SecureRelNode child : relNode.getChildren()) {
             // if a local plan, replace with SQL and terminate, otherwise recurse
             if(!child.getPhysicalNode().getExecutionMode().distributed) {
-                //Integer operatorId = child.getRelNode().getId();
-                Integer operatorNo = sqlNodes.size();
+                Integer idx = sqlNodes.size();
+                // Idx 1 + (idx  - 1) * 2 - may  need to frame this as a stack of inputs to get the right one as needed.
+                Integer operatorNo = (idx < 2) ? idx : 1 + (idx - 1) * 2;
+
+                RelNode childRelNode = child.getRelNode();
+                List<RelCollation> sortOrder = childRelNode.getCollationList(); // TODO: fix this to use non-deprecated methods later
+                System.out.println("Collation: " + sortOrder);
+
                 String sql = SqlGenerator.getSourceSql(child.getPhysicalNode());
                 sqlNodes.put(operatorNo, sql);
 
@@ -82,12 +90,5 @@ public class JSONGenerator {
 
 
 
-    static String generateSql(RelNode node) {
-        RelToSqlConverter converter = new RelToSqlConverter(SystemConfiguration.DIALECT);
 
-        SqlSelect sql = converter.visitChild(0, node).asSelect();
-        String sqlOut = sql.toSqlString(SystemConfiguration.DIALECT).getSql();
-        sqlOut = sqlOut.replace("\"", "");
-        return sqlOut;
-    }
 }

@@ -1,4 +1,4 @@
-package org.vaultdb.test.support;
+package org.vaultdb.support;
 
 import com.google.common.collect.ImmutableList;
 
@@ -8,19 +8,22 @@ public class TpcHQueries {
 
     public static final List<String> QUERIES = ImmutableList.of(
             // 01
-            "select\n"
+            "WITH q1_projection AS (SELECT l_returnflag, l_linestatus, l_quantity, l_discount, l_extendedprice, l_extendedprice * (1 - l_discount) AS disc_price, l_extendedprice * (1 - l_discount) * (1 + l_tax) AS charge, l_shipdate\n"
+                  +  "FROM lineitem\n"
+                    + "ORDER BY l_returnflag, l_linestatus)\n"
+           + "select\n"
                     + "  l_returnflag,\n"
                     + "  l_linestatus,\n"
                     + "  sum(l_quantity) as sum_qty,\n"
                     + "  sum(l_extendedprice) as sum_base_price,\n"
-                    + "  sum(l_extendedprice * (1 - l_discount)) as sum_disc_price,\n"
-                    + "  sum(l_extendedprice * (1 - l_discount) * (1 + l_tax)) as sum_charge,\n"
+                    + "  sum(disc_price) as sum_disc_price,\n"
+                    + "  sum(charge) as sum_charge,\n"
                     + "  avg(l_quantity) as avg_qty,\n"
                     + "  avg(l_extendedprice) as avg_price,\n"
                     + "  avg(l_discount) as avg_disc,\n"
                     + "  count(*) as count_order\n"
                     + "from\n"
-                    + "  lineitem\n"
+                    + "  q1_projection\n"
                     + " where\n"
                     + "  l_shipdate <= date '1998-08-03'\n"
                     + "group by\n"
@@ -85,14 +88,14 @@ public class TpcHQueries {
             // 03
             "select\n"
                     + "  l.l_orderkey,\n"
-                    + "  sum(l.l_extendedprice * (1 - l.l_discount)) as revenue,\n"
+                    + "  sum(revenue) as revenue,\n"
                     + "  o.o_orderdate,\n"
                     + "  o.o_shippriority\n"
                     + "\n"
                     + "from\n"
                     + "  customer c,\n"
                     + "  orders o,\n"
-                    + "  lineitem l\n"
+                    + "  (SELECT l_orderkey, l_shipdate, l_extendedprice * (1 - l_discount) revenue FROM lineitem) l\n"
                     + "\n"
                     + "where\n"
                     + "  c.c_mktsegment = 'HOUSEHOLD'\n"

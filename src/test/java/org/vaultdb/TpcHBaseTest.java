@@ -10,11 +10,9 @@ import org.vaultdb.config.WorkerConfiguration;
 import org.vaultdb.db.schema.SystemCatalog;
 import org.vaultdb.executor.config.ConnectionManager;
 import org.vaultdb.parser.SqlStatementParser;
-import org.vaultdb.test.support.TpcHQueries;
-import org.vaultdb.type.SecureRelRecordType;
+import org.vaultdb.support.TpcHQueries;
 import org.vaultdb.util.Utilities;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 import junit.framework.TestCase;
