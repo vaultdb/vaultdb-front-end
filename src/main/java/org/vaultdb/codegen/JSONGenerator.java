@@ -45,7 +45,7 @@ public class JSONGenerator {
 
         // now add the root node
         //Integer rootID = localCopy.getId();
-        String rootJSON =  RelOptUtil.dumpPlan("", localCopy, SqlExplainFormat.JSON, SqlExplainLevel.EXPPLAN_ATTRIBUTES); // was digest_attributes
+        String rootJSON =  RelOptUtil.dumpPlan("", localCopy, SqlExplainFormat.JSON, SqlExplainLevel.DIGEST_ATTRIBUTES); 
         String outFilename = Utilities.getVaultDBRoot() + "/src/test/java/org/vaultdb/test/plans/mpc-" + testName + ".json";
 
         FileUtilities.writeFile(outFilename, rootJSON);
