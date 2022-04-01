@@ -293,8 +293,8 @@ public class TpcHQueries {
                     + "     FROM orders o),\n"
                     + "     yellow_parts AS (\n"
                     + "         SELECT p_partkey\n"
-                    + "	 FROM part\n"
-                    + "	 WHERE p_name like '%yellow%'),\n"
+                    + "	 FROM part),\n" // omitting LIKE for now for ZKSQL
+                //    + "	 WHERE p_name like '%yellow%'),\n"
                     + "     profit AS (\n"
                     + "         select\n"
                     + "    	   n_name as nation,\n"
