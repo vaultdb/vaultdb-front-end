@@ -45,7 +45,7 @@ public class JSONGenerator {
 
         // now add the root node
         //Integer rootID = localCopy.getId();
-        String rootJSON =  RelOptUtil.dumpPlan("", localCopy, SqlExplainFormat.JSON, SqlExplainLevel.DIGEST_ATTRIBUTES); 
+        String rootJSON =  RelOptUtil.dumpPlan("", localCopy, SqlExplainFormat.JSON, SqlExplainLevel.DIGEST_ATTRIBUTES);
         String outFilename = Utilities.getVaultDBRoot() + "/src/test/java/org/vaultdb/test/plans/mpc-" + testName + ".json";
 
         FileUtilities.writeFile(outFilename, rootJSON);
@@ -57,6 +57,19 @@ public class JSONGenerator {
 
     }
 
+
+    // disregard the access control (public/private) on each attribute.  Output entire query execution plan unconditionally
+    // for use in ZKSQL
+    public static String exportWholeQueryPlan(SecureRelNode aNode, String testName) throws Exception {
+	 String rootJSON =  RelOptUtil.dumpPlan("", aNode.getRelNode(), SqlExplainFormat.JSON, SqlExplainLevel.DIGEST_ATTRIBUTES);
+	 String outFilename = Utilities.getVaultDBRoot() + "/src/test/java/org/vaultdb/test/plans/whole/zk-" + testName + ".json";
+
+     FileUtilities.writeFile(outFilename, rootJSON);
+
+	 return rootJSON;
+
+    }
+    
     // replace plaintext subtrees with their corresponding SQL statements
     // return map of before and after for secure leafs
     static Map<RelNode, RelNode> exportQueryPlanHelper(SecureRelNode relNode, Map<RelNode, RelNode> replacements, Map<Integer, String> sqlNodes) throws Exception {

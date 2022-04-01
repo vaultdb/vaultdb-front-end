@@ -261,7 +261,7 @@ public class TpcHQueries {
                     "supplier_nation AS (\n" +
                     "\t\tSELECT s_suppkey, n_nationkey, n_name,  CASE WHEN n_name = 'EGYPT' THEN 1 ELSE 0 END nation_check\n" +
                     "\t\tFROM nation JOIN supplier s ON s.s_nationkey = n_nationkey),\n" +
-                    "parts_lineitem_supplier_nation AS (\n" +
+                    " parts_lineitem_supplier_nation AS (\n" +
                     "    SELECT l_extendedprice, l_discount, s_suppkey, n_nationkey, n_name, nation_check, l_orderkey\n" +
                     "    FROM part p JOIN lineitem ON l_partkey = p_partkey\n" +
                     "        JOIN supplier_nation ON s_suppkey = l_suppkey\n" +
@@ -269,9 +269,9 @@ public class TpcHQueries {
                     "all_nations AS (\n" +
                     "    select\n" +
                     "      o_year,\n" +
-                    "      l.l_extendedprice * (1 - l.l_discount) as volume,\n" +
+                    "      l.l_extendedprice * (1.0 - l.l_discount) as volume,\n" +
                     "      l.n_name as nation,\n" +
-                    "      nation_check * l.l_extendedprice * (1 - l.l_discount)  as egypt_volume\n" +
+                    "      nation_check * l.l_extendedprice * (1.0 - l.l_discount)  as egypt_volume\n" +
                     "    from\n" +
                     "         nation n1 JOIN region r ON n1.n_regionkey = r.r_regionkey\n" +
                     "            JOIN customer c ON n1.n_nationkey = c_nationkey\n" +
@@ -287,7 +287,6 @@ public class TpcHQueries {
                     "  o_year\n" +
                     "order by\n" +
                     "  o_year",
-
             // 09
             "WITH order_years AS (\n"
                     + "     SELECT o_orderyear as o_year, o.o_orderkey\n"

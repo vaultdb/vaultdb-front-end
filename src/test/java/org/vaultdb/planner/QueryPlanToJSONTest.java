@@ -66,6 +66,46 @@ public class QueryPlanToJSONTest extends TpcHBaseTest {
     }
 
 
+    public void testWholeQuery01() throws Exception {
+        String sql = QUERIES.get(0);
+        String testName = "q" + 1;
+        wholeTestCase(testName, sql);
+    }
+
+
+
+    public void testWholeQuery03() throws Exception {
+        String sql = QUERIES.get(2);
+        String testName = "q" + 3;
+        wholeTestCase(testName, sql);
+    }
+
+
+    public void testWholeQuery05() throws Exception {
+        String sql = QUERIES.get(4);
+        String testName = "q" + 5;
+        wholeTestCase(testName, sql);
+    }
+
+    public void testWholeQuery08() throws Exception {
+        String sql = QUERIES.get(7);
+        String testName = "q" + 8;
+        wholeTestCase(testName, sql);
+    }
+
+    public void testWholeQuery09() throws Exception {
+        String sql = QUERIES.get(8);
+        String testName = "q" + 9;
+        wholeTestCase(testName, sql);
+    }
+    public void testWholeQuery18() throws Exception {
+        String sql = QUERIES.get(17);
+        String testName = "q" + 18;
+        wholeTestCase(testName, sql);
+    }
+
+
+
     // test the lifecycle of parsing, creating DAG, and regenerating SQL
     // does it produce the same results after these transformations?
     protected void testCase(String testName, String sql) throws Exception {
@@ -81,6 +121,17 @@ public class QueryPlanToJSONTest extends TpcHBaseTest {
         logger.info("Parsed plan for " + testName + ":\n" + plan);
 
 
+
+    }
+
+    protected void wholeTestCase(String testName, String sql) throws Exception {
+        SecureRelRoot root = new SecureRelRoot(testName, sql);
+
+        String logicalPlan = RelOptUtil.dumpPlan("", root.getRelRoot().rel, SqlExplainFormat.TEXT, SqlExplainLevel.ALL_ATTRIBUTES);
+        System.out.println("Logical plan: " + root);
+
+        String plan = JSONGenerator.exportWholeQueryPlan(root.getPlanRoot().getSecureRelNode(), testName);
+        logger.info("Parsed plan for " + testName + ":\n" + plan);
 
     }
 
