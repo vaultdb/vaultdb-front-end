@@ -1,0 +1,46 @@
+{
+  "rels": [
+    {
+      "id": "0",
+      "relOp": "LogicalValues",
+      "type": [
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "o_id"
+        },
+        {
+          "type": "INTEGER",
+          "nullable": true,
+          "name": "o_carrier_id"
+        },
+        {
+          "type": "TIMESTAMP",
+          "nullable": false,
+          "precision": 3,
+          "name": "o_entry_d"
+        }
+      ],
+      "tuples": [],
+      "inputs": []
+    },
+    {
+      "id": "1",
+      "relOp": "LogicalSort",
+      "collation": [
+        {
+          "field": 0,
+          "direction": "DESCENDING",
+          "nulls": "FIRST"
+        }
+      ],
+      "fetch": {
+        "literal": 1,
+        "type": {
+          "type": "INTEGER",
+          "nullable": false
+        }
+      }
+    }
+  ]
+}

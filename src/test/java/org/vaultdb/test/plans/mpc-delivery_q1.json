@@ -1,0 +1,36 @@
+{
+  "rels": [
+    {
+      "id": "0",
+      "relOp": "LogicalValues",
+      "type": [
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "no_w_id"
+        },
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "no_d_id"
+        },
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "no_o_id"
+        }
+      ],
+      "tuples": [],
+      "inputs": []
+    },
+    {
+      "id": "1",
+      "relOp": "LogicalTableModify",
+      "table": [
+        "new_order"
+      ],
+      "operation": "DELETE",
+      "flattened": false
+    }
+  ]
+}

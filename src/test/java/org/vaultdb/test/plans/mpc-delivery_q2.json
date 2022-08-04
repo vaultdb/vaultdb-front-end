@@ -1,0 +1,45 @@
+{
+  "rels": [
+    {
+      "id": "0",
+      "relOp": "LogicalValues",
+      "type": [
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "o_w_id"
+        },
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "o_d_id"
+        },
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "o_id"
+        },
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "o_c_id"
+        }
+      ],
+      "tuples": [],
+      "inputs": []
+    },
+    {
+      "id": "1",
+      "relOp": "LogicalProject",
+      "fields": [
+        "O_C_ID"
+      ],
+      "exprs": [
+        {
+          "input": 3,
+          "name": "$3"
+        }
+      ]
+    }
+  ]
+}

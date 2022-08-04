@@ -1,0 +1,91 @@
+{
+  "rels": [
+    {
+      "id": "0",
+      "relOp": "LogicalValues",
+      "type": [
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "w_id"
+        },
+        {
+          "type": "VARCHAR",
+          "nullable": false,
+          "precision": 10,
+          "name": "w_name"
+        },
+        {
+          "type": "VARCHAR",
+          "nullable": false,
+          "precision": 20,
+          "name": "w_street_1"
+        },
+        {
+          "type": "VARCHAR",
+          "nullable": false,
+          "precision": 20,
+          "name": "w_street_2"
+        },
+        {
+          "type": "VARCHAR",
+          "nullable": false,
+          "precision": 20,
+          "name": "w_city"
+        },
+        {
+          "type": "CHAR",
+          "nullable": false,
+          "precision": 2,
+          "name": "w_state"
+        },
+        {
+          "type": "CHAR",
+          "nullable": false,
+          "precision": 9,
+          "name": "w_zip"
+        }
+      ],
+      "tuples": [],
+      "inputs": []
+    },
+    {
+      "id": "1",
+      "relOp": "LogicalProject",
+      "fields": [
+        "W_STREET_1",
+        "W_STREET_2",
+        "W_CITY",
+        "W_STATE",
+        "W_ZIP",
+        "W_NAME"
+      ],
+      "exprs": [
+        {
+          "input": 2,
+          "name": "$2"
+        },
+        {
+          "input": 3,
+          "name": "$3"
+        },
+        {
+          "input": 4,
+          "name": "$4"
+        },
+        {
+          "input": 5,
+          "name": "$5"
+        },
+        {
+          "input": 6,
+          "name": "$6"
+        },
+        {
+          "input": 1,
+          "name": "$1"
+        }
+      ]
+    }
+  ]
+}

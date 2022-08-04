@@ -1,0 +1,219 @@
+{
+  "rels": [
+    {
+      "id": "0",
+      "relOp": "LogicalValues",
+      "type": [
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "c_w_id"
+        },
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "c_d_id"
+        },
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "c_id"
+        },
+        {
+          "type": "DECIMAL",
+          "nullable": false,
+          "precision": 4,
+          "scale": 4,
+          "name": "c_discount"
+        },
+        {
+          "type": "CHAR",
+          "nullable": false,
+          "precision": 2,
+          "name": "c_credit"
+        },
+        {
+          "type": "VARCHAR",
+          "nullable": false,
+          "precision": 16,
+          "name": "c_last"
+        },
+        {
+          "type": "VARCHAR",
+          "nullable": false,
+          "precision": 16,
+          "name": "c_first"
+        },
+        {
+          "type": "DECIMAL",
+          "nullable": false,
+          "precision": 12,
+          "scale": 2,
+          "name": "c_credit_lim"
+        },
+        {
+          "type": "DECIMAL",
+          "nullable": false,
+          "precision": 12,
+          "scale": 2,
+          "name": "c_balance"
+        },
+        {
+          "type": "DOUBLE",
+          "nullable": false,
+          "name": "c_ytd_payment"
+        },
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "c_payment_cnt"
+        },
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "c_delivery_cnt"
+        },
+        {
+          "type": "VARCHAR",
+          "nullable": false,
+          "precision": 20,
+          "name": "c_street_1"
+        },
+        {
+          "type": "VARCHAR",
+          "nullable": false,
+          "precision": 20,
+          "name": "c_street_2"
+        },
+        {
+          "type": "VARCHAR",
+          "nullable": false,
+          "precision": 20,
+          "name": "c_city"
+        },
+        {
+          "type": "CHAR",
+          "nullable": false,
+          "precision": 2,
+          "name": "c_state"
+        },
+        {
+          "type": "CHAR",
+          "nullable": false,
+          "precision": 9,
+          "name": "c_zip"
+        },
+        {
+          "type": "CHAR",
+          "nullable": false,
+          "precision": 16,
+          "name": "c_phone"
+        },
+        {
+          "type": "TIMESTAMP",
+          "nullable": false,
+          "precision": 3,
+          "name": "c_since"
+        },
+        {
+          "type": "CHAR",
+          "nullable": false,
+          "precision": 2,
+          "name": "c_middle"
+        },
+        {
+          "type": "VARCHAR",
+          "nullable": false,
+          "precision": 500,
+          "name": "c_data"
+        },
+        {
+          "type": "DECIMAL",
+          "nullable": false,
+          "precision": 16,
+          "scale": 5,
+          "name": "EXPR$0"
+        },
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "EXPR$1"
+        }
+      ],
+      "tuples": [],
+      "inputs": []
+    },
+    {
+      "id": "1",
+      "relOp": "LogicalTableModify",
+      "table": [
+        "customer"
+      ],
+      "operation": "UPDATE",
+      "updateColumnList": [
+        "c_balance",
+        "c_delivery_cnt"
+      ],
+      "sourceExpressionList": [
+        {
+          "op": {
+            "name": "CAST",
+            "kind": "CAST",
+            "syntax": "SPECIAL"
+          },
+          "operands": [
+            {
+              "op": {
+                "name": "+",
+                "kind": "PLUS",
+                "syntax": "BINARY"
+              },
+              "operands": [
+                {
+                  "input": 8,
+                  "name": "$8"
+                },
+                {
+                  "literal": 47440.71875,
+                  "type": {
+                    "type": "DECIMAL",
+                    "nullable": false,
+                    "precision": 10,
+                    "scale": 5
+                  }
+                }
+              ]
+            }
+          ],
+          "type": {
+            "type": "DECIMAL",
+            "nullable": false,
+            "precision": 12,
+            "scale": 2
+          }
+        },
+        {
+          "op": {
+            "name": "+",
+            "kind": "PLUS",
+            "syntax": "BINARY"
+          },
+          "operands": [
+            {
+              "input": 11,
+              "name": "$11"
+            },
+            {
+              "literal": 1,
+              "type": {
+                "type": "INTEGER",
+                "nullable": false
+              }
+            }
+          ]
+        }
+      ],
+      "flattened": false
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "rels": [
+    {
+      "id": "0",
+      "relOp": "LogicalValues",
+      "type": [
+        {
+          "type": "DECIMAL",
+          "nullable": false,
+          "precision": 6,
+          "scale": 2,
+          "name": "ol_amount"
+        }
+      ],
+      "tuples": [],
+      "inputs": []
+    },
+    {
+      "id": "1",
+      "relOp": "LogicalAggregate",
+      "group": [],
+      "aggs": [
+        {
+          "agg": {
+            "name": "SUM",
+            "kind": "SUM",
+            "syntax": "FUNCTION"
+          },
+          "type": {
+            "type": "DECIMAL",
+            "nullable": true,
+            "precision": 19,
+            "scale": 2
+          },
+          "distinct": false,
+          "operands": [
+            0
+          ],
+          "name": "OL_TOTAL"
+        }
+      ]
+    }
+  ]
+}

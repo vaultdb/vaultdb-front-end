@@ -1,0 +1,79 @@
+{
+  "rels": [
+    {
+      "id": "0",
+      "relOp": "LogicalValues",
+      "type": [
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "o_w_id"
+        },
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "o_d_id"
+        },
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "o_id"
+        },
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "o_c_id"
+        },
+        {
+          "type": "INTEGER",
+          "nullable": true,
+          "name": "o_carrier_id"
+        },
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "o_ol_cnt"
+        },
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "o_all_local"
+        },
+        {
+          "type": "TIMESTAMP",
+          "nullable": false,
+          "precision": 3,
+          "name": "o_entry_d"
+        },
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "EXPR$0"
+        }
+      ],
+      "tuples": [],
+      "inputs": []
+    },
+    {
+      "id": "1",
+      "relOp": "LogicalTableModify",
+      "table": [
+        "oorder"
+      ],
+      "operation": "UPDATE",
+      "updateColumnList": [
+        "o_carrier_id"
+      ],
+      "sourceExpressionList": [
+        {
+          "literal": 1,
+          "type": {
+            "type": "INTEGER",
+            "nullable": false
+          }
+        }
+      ],
+      "flattened": false
+    }
+  ]
+}

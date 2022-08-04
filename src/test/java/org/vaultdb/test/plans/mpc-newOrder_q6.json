@@ -1,0 +1,59 @@
+{
+  "rels": [
+    {
+      "id": "0",
+      "relOp": "LogicalValues",
+      "type": [
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "i_id"
+        },
+        {
+          "type": "VARCHAR",
+          "nullable": false,
+          "precision": 24,
+          "name": "i_name"
+        },
+        {
+          "type": "DECIMAL",
+          "nullable": false,
+          "precision": 5,
+          "scale": 2,
+          "name": "i_price"
+        },
+        {
+          "type": "VARCHAR",
+          "nullable": false,
+          "precision": 50,
+          "name": "i_data"
+        }
+      ],
+      "tuples": [],
+      "inputs": []
+    },
+    {
+      "id": "1",
+      "relOp": "LogicalProject",
+      "fields": [
+        "I_PRICE",
+        "I_NAME",
+        "I_DATA"
+      ],
+      "exprs": [
+        {
+          "input": 2,
+          "name": "$2"
+        },
+        {
+          "input": 1,
+          "name": "$1"
+        },
+        {
+          "input": 3,
+          "name": "$3"
+        }
+      ]
+    }
+  ]
+}

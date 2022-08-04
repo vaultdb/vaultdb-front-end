@@ -1,0 +1,40 @@
+{
+  "rels": [
+    {
+      "id": "0",
+      "relOp": "LogicalValues",
+      "type": [
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "d_w_id"
+        },
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "d_id"
+        },
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "d_next_o_id"
+        }
+      ],
+      "tuples": [],
+      "inputs": []
+    },
+    {
+      "id": "1",
+      "relOp": "LogicalProject",
+      "fields": [
+        "D_NEXT_O_ID"
+      ],
+      "exprs": [
+        {
+          "input": 2,
+          "name": "$2"
+        }
+      ]
+    }
+  ]
+}

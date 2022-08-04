@@ -1,0 +1,110 @@
+{
+  "rels": [
+    {
+      "id": "0",
+      "relOp": "LogicalValues",
+      "type": [
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "ol_w_id"
+        },
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "ol_d_id"
+        },
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "ol_o_id"
+        },
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "ol_number"
+        },
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "ol_i_id"
+        },
+        {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "precision": 3,
+          "name": "ol_delivery_d"
+        },
+        {
+          "type": "DECIMAL",
+          "nullable": false,
+          "precision": 6,
+          "scale": 2,
+          "name": "ol_amount"
+        },
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "ol_supply_w_id"
+        },
+        {
+          "type": "DECIMAL",
+          "nullable": false,
+          "precision": 6,
+          "scale": 2,
+          "name": "ol_quantity"
+        },
+        {
+          "type": "CHAR",
+          "nullable": false,
+          "precision": 24,
+          "name": "ol_dist_info"
+        },
+        {
+          "type": "CHAR",
+          "nullable": false,
+          "precision": 26,
+          "name": "EXPR$0"
+        }
+      ],
+      "tuples": [],
+      "inputs": []
+    },
+    {
+      "id": "1",
+      "relOp": "LogicalTableModify",
+      "table": [
+        "order_line"
+      ],
+      "operation": "UPDATE",
+      "updateColumnList": [
+        "ol_delivery_d"
+      ],
+      "sourceExpressionList": [
+        {
+          "op": {
+            "name": "CAST",
+            "kind": "CAST",
+            "syntax": "SPECIAL"
+          },
+          "operands": [
+            {
+              "literal": "2022-07-30 04:51:39.807+00",
+              "type": {
+                "type": "CHAR",
+                "nullable": false,
+                "precision": 26
+              }
+            }
+          ],
+          "type": {
+            "type": "TIMESTAMP",
+            "nullable": false,
+            "precision": 3
+          }
+        }
+      ],
+      "flattened": false
+    }
+  ]
+}

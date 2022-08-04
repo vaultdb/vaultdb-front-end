@@ -1,0 +1,37 @@
+{
+  "rels": [
+    {
+      "id": "0",
+      "relOp": "LogicalValues",
+      "type": [
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "w_id"
+        },
+        {
+          "type": "DECIMAL",
+          "nullable": false,
+          "precision": 4,
+          "scale": 4,
+          "name": "w_tax"
+        }
+      ],
+      "tuples": [],
+      "inputs": []
+    },
+    {
+      "id": "1",
+      "relOp": "LogicalProject",
+      "fields": [
+        "W_TAX"
+      ],
+      "exprs": [
+        {
+          "input": 1,
+          "name": "$1"
+        }
+      ]
+    }
+  ]
+}

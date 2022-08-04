@@ -1,0 +1,90 @@
+{
+  "rels": [
+    {
+      "id": "0",
+      "relOp": "LogicalValues",
+      "type": [
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "ol_w_id"
+        },
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "ol_d_id"
+        },
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "ol_o_id"
+        },
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "ol_i_id"
+        },
+        {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "precision": 3,
+          "name": "ol_delivery_d"
+        },
+        {
+          "type": "DECIMAL",
+          "nullable": false,
+          "precision": 6,
+          "scale": 2,
+          "name": "ol_amount"
+        },
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "ol_supply_w_id"
+        },
+        {
+          "type": "DECIMAL",
+          "nullable": false,
+          "precision": 6,
+          "scale": 2,
+          "name": "ol_quantity"
+        }
+      ],
+      "tuples": [],
+      "inputs": []
+    },
+    {
+      "id": "1",
+      "relOp": "LogicalProject",
+      "fields": [
+        "OL_I_ID",
+        "OL_SUPPLY_W_ID",
+        "OL_QUANTITY",
+        "OL_AMOUNT",
+        "OL_DELIVERY_D"
+      ],
+      "exprs": [
+        {
+          "input": 3,
+          "name": "$3"
+        },
+        {
+          "input": 6,
+          "name": "$6"
+        },
+        {
+          "input": 7,
+          "name": "$7"
+        },
+        {
+          "input": 5,
+          "name": "$5"
+        },
+        {
+          "input": 4,
+          "name": "$4"
+        }
+      ]
+    }
+  ]
+}

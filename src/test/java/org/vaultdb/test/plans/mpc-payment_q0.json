@@ -1,0 +1,125 @@
+{
+  "rels": [
+    {
+      "id": "0",
+      "relOp": "LogicalValues",
+      "type": [
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "w_id"
+        },
+        {
+          "type": "DECIMAL",
+          "nullable": false,
+          "precision": 12,
+          "scale": 2,
+          "name": "w_ytd"
+        },
+        {
+          "type": "DECIMAL",
+          "nullable": false,
+          "precision": 4,
+          "scale": 4,
+          "name": "w_tax"
+        },
+        {
+          "type": "VARCHAR",
+          "nullable": false,
+          "precision": 10,
+          "name": "w_name"
+        },
+        {
+          "type": "VARCHAR",
+          "nullable": false,
+          "precision": 20,
+          "name": "w_street_1"
+        },
+        {
+          "type": "VARCHAR",
+          "nullable": false,
+          "precision": 20,
+          "name": "w_street_2"
+        },
+        {
+          "type": "VARCHAR",
+          "nullable": false,
+          "precision": 20,
+          "name": "w_city"
+        },
+        {
+          "type": "CHAR",
+          "nullable": false,
+          "precision": 2,
+          "name": "w_state"
+        },
+        {
+          "type": "CHAR",
+          "nullable": false,
+          "precision": 9,
+          "name": "w_zip"
+        },
+        {
+          "type": "DECIMAL",
+          "nullable": false,
+          "precision": 19,
+          "scale": 11,
+          "name": "EXPR$0"
+        }
+      ],
+      "tuples": [],
+      "inputs": []
+    },
+    {
+      "id": "1",
+      "relOp": "LogicalTableModify",
+      "table": [
+        "warehouse"
+      ],
+      "operation": "UPDATE",
+      "updateColumnList": [
+        "w_ytd"
+      ],
+      "sourceExpressionList": [
+        {
+          "op": {
+            "name": "CAST",
+            "kind": "CAST",
+            "syntax": "SPECIAL"
+          },
+          "operands": [
+            {
+              "op": {
+                "name": "+",
+                "kind": "PLUS",
+                "syntax": "BINARY"
+              },
+              "operands": [
+                {
+                  "input": 1,
+                  "name": "$1"
+                },
+                {
+                  "literal": 4772.97998046875,
+                  "type": {
+                    "type": "DECIMAL",
+                    "nullable": false,
+                    "precision": 15,
+                    "scale": 11
+                  }
+                }
+              ]
+            }
+          ],
+          "type": {
+            "type": "DECIMAL",
+            "nullable": false,
+            "precision": 12,
+            "scale": 2
+          }
+        }
+      ],
+      "flattened": false
+    }
+  ]
+}

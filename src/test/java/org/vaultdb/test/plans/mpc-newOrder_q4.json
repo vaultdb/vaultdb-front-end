@@ -1,0 +1,116 @@
+{
+  "rels": [
+    {
+      "id": "0",
+      "relOp": "LogicalValues",
+      "type": [
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "d_w_id"
+        },
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "d_id"
+        },
+        {
+          "type": "DECIMAL",
+          "nullable": false,
+          "precision": 12,
+          "scale": 2,
+          "name": "d_ytd"
+        },
+        {
+          "type": "DECIMAL",
+          "nullable": false,
+          "precision": 4,
+          "scale": 4,
+          "name": "d_tax"
+        },
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "d_next_o_id"
+        },
+        {
+          "type": "VARCHAR",
+          "nullable": false,
+          "precision": 10,
+          "name": "d_name"
+        },
+        {
+          "type": "VARCHAR",
+          "nullable": false,
+          "precision": 20,
+          "name": "d_street_1"
+        },
+        {
+          "type": "VARCHAR",
+          "nullable": false,
+          "precision": 20,
+          "name": "d_street_2"
+        },
+        {
+          "type": "VARCHAR",
+          "nullable": false,
+          "precision": 20,
+          "name": "d_city"
+        },
+        {
+          "type": "CHAR",
+          "nullable": false,
+          "precision": 2,
+          "name": "d_state"
+        },
+        {
+          "type": "CHAR",
+          "nullable": false,
+          "precision": 9,
+          "name": "d_zip"
+        },
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "EXPR$0"
+        }
+      ],
+      "tuples": [],
+      "inputs": []
+    },
+    {
+      "id": "1",
+      "relOp": "LogicalTableModify",
+      "table": [
+        "district"
+      ],
+      "operation": "UPDATE",
+      "updateColumnList": [
+        "d_next_o_id"
+      ],
+      "sourceExpressionList": [
+        {
+          "op": {
+            "name": "+",
+            "kind": "PLUS",
+            "syntax": "BINARY"
+          },
+          "operands": [
+            {
+              "input": 4,
+              "name": "$4"
+            },
+            {
+              "literal": 1,
+              "type": {
+                "type": "INTEGER",
+                "nullable": false
+              }
+            }
+          ]
+        }
+      ],
+      "flattened": false
+    }
+  ]
+}

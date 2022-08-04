@@ -1,0 +1,69 @@
+{
+  "rels": [
+    {
+      "id": "0",
+      "relOp": "LogicalValues",
+      "type": [
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "c_w_id"
+        },
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "c_d_id"
+        },
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "c_id"
+        },
+        {
+          "type": "DECIMAL",
+          "nullable": false,
+          "precision": 4,
+          "scale": 4,
+          "name": "c_discount"
+        },
+        {
+          "type": "CHAR",
+          "nullable": false,
+          "precision": 2,
+          "name": "c_credit"
+        },
+        {
+          "type": "VARCHAR",
+          "nullable": false,
+          "precision": 16,
+          "name": "c_last"
+        }
+      ],
+      "tuples": [],
+      "inputs": []
+    },
+    {
+      "id": "1",
+      "relOp": "LogicalProject",
+      "fields": [
+        "C_DISCOUNT",
+        "C_LAST",
+        "C_CREDIT"
+      ],
+      "exprs": [
+        {
+          "input": 3,
+          "name": "$3"
+        },
+        {
+          "input": 5,
+          "name": "$5"
+        },
+        {
+          "input": 4,
+          "name": "$4"
+        }
+      ]
+    }
+  ]
+}

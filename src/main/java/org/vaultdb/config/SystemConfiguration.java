@@ -82,6 +82,7 @@ public class SystemConfiguration {
 		
 		if(configFile == null) 
 			configFile = Utilities.getVaultDBRoot() + "/conf/setup.global";
+            
 		
 		
 		File f = new File(configFile); // may not always exist in remote invocations

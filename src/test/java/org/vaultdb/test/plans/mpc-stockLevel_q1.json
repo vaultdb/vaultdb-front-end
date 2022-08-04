@@ -1,0 +1,100 @@
+{
+  "rels": [
+    {
+      "id": "0",
+      "relOp": "LogicalValues",
+      "type": [
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "ol_i_id"
+        }
+      ],
+      "tuples": [],
+      "inputs": []
+    },
+    {
+      "id": "1",
+      "relOp": "LogicalValues",
+      "type": [
+        {
+          "type": "INTEGER",
+          "nullable": false,
+          "name": "s_i_id"
+        }
+      ],
+      "tuples": [],
+      "inputs": []
+    },
+    {
+      "id": "2",
+      "relOp": "LogicalJoin",
+      "condition": {
+        "op": {
+          "name": "=",
+          "kind": "EQUALS",
+          "syntax": "BINARY"
+        },
+        "operands": [
+          {
+            "input": 1,
+            "name": "$1"
+          },
+          {
+            "input": 0,
+            "name": "$0"
+          }
+        ]
+      },
+      "joinType": "inner",
+      "inputs": [
+        "0",
+        "1"
+      ]
+    },
+    {
+      "id": "3",
+      "relOp": "LogicalProject",
+      "fields": [
+        "s_i_id"
+      ],
+      "exprs": [
+        {
+          "input": 1,
+          "name": "$1"
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "relOp": "LogicalAggregate",
+      "group": [
+        0
+      ],
+      "aggs": []
+    },
+    {
+      "id": "5",
+      "relOp": "LogicalAggregate",
+      "group": [],
+      "aggs": [
+        {
+          "agg": {
+            "name": "COUNT",
+            "kind": "COUNT",
+            "syntax": "FUNCTION_STAR"
+          },
+          "type": {
+            "type": "BIGINT",
+            "nullable": false
+          },
+          "distinct": false,
+          "operands": [
+            0
+          ],
+          "name": "STOCK_COUNT"
+        }
+      ]
+    }
+  ]
+}

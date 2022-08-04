@@ -8,6 +8,7 @@ import org.apache.calcite.rel.logical.LogicalJoin;
 import org.apache.calcite.rel.logical.LogicalProject;
 import org.apache.calcite.rel.logical.LogicalSort;
 import org.apache.calcite.rel.logical.LogicalWindow;
+import org.apache.calcite.rel.logical.LogicalTableModify; // update clause.
 import org.vaultdb.plan.SecureRelNode;
 
 public class OperatorFactory {
@@ -27,10 +28,12 @@ public class OperatorFactory {
 			return new Aggregate(name, secNode, children);
 			
 		}
+
+        if(node instanceof LogicalTableModify)
+            return new Update(name, secNode, children); 
 		
 		if(node instanceof LogicalWindow) 
 			return new WindowAggregate(name, secNode, children);
-		
 		
 		if(node instanceof LogicalJoin)
 			return new Join(name, secNode, children);
