@@ -68,7 +68,7 @@ public class SystemCatalog {
 
     public static SystemCatalog getInstance(SystemConfiguration configuration) throws Exception {
         if (instance == null) {
-            instance = new SystemCatalog(configuration.getHonestBrokerConfig());
+            instance = new SystemCatalog(configuration.getSchemaConfig());
         }
         return instance;
     }

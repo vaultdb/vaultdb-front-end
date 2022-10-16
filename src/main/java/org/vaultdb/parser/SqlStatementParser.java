@@ -156,6 +156,11 @@ public class SqlStatementParser {
 	  public RelRoot convertSqlToRelMinFields(String sql) throws SqlParseException {
 	      assert(sql != null);
 
+		  if(sql.contains(";")) {
+			  sql = sql.substring(0, sql.indexOf(';'));
+		  }
+
+
 	      final SqlNode sqlQuery = planner.parse(sql);
 	      final RelDataTypeFactory typeFactory = planner.getTypeFactory();
 	     

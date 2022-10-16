@@ -58,6 +58,40 @@ public class JSONGenerator {
     }
 
 
+    public static String exportGenericQueryPlan(SecureRelNode secureRelNode, String testName, String dstPath) throws Exception {
+        Map<RelNode, RelNode> replacements = new HashMap<RelNode, RelNode>();
+        Map<Integer, String> planNodes =  new HashMap<Integer, String>();
+        replacements = exportQueryPlanHelper(secureRelNode, replacements, planNodes);
+        RelNode localCopy = secureRelNode.getRelNode();
+
+        for(Map.Entry<RelNode, RelNode> entry : replacements.entrySet()) {
+            localCopy = RelOptUtil.replace(localCopy, entry.getKey(), entry.getValue());
+        }
+
+
+        // write it into one long output
+        String sqlOutput = new String();
+        // first SQL statements:
+        for(Map.Entry<Integer, String> entry : planNodes.entrySet()) {
+            sqlOutput += "-- " + entry.getKey()   + "\n" + entry.getValue() + "\n";
+
+        }
+
+        // now add the root node
+        //Integer rootID = localCopy.getId();
+        String rootJSON =  RelOptUtil.dumpPlan("", localCopy, SqlExplainFormat.JSON, SqlExplainLevel.DIGEST_ATTRIBUTES);
+        String outFilename = Utilities.getVaultDBRoot() + "/" + dstPath + "/mpc-" + testName + ".json";
+
+        FileUtilities.writeFile(outFilename, rootJSON);
+
+        String sqlFile = Utilities.getVaultDBRoot() + "/" + dstPath + "/queries-" + testName + ".sql";
+        FileUtilities.writeFile(sqlFile, sqlOutput);
+
+        return sqlOutput + "[root=" + rootJSON+ "]";
+
+    }
+
+
     // disregard the access control (public/private) on each attribute.  Output entire query execution plan unconditionally
     // for use in ZKSQL
     public static String exportWholeQueryPlan(SecureRelNode aNode, String testName) throws Exception {

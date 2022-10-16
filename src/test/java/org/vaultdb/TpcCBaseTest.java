@@ -189,7 +189,7 @@ public abstract class TpcCBaseTest  extends TestCase {
 		catalog = SystemCatalog.getInstance();
 
 		parser = new SqlStatementParser();
-		honestBroker = SystemConfiguration.getInstance().getHonestBrokerConfig();
+		honestBroker = SystemConfiguration.getInstance().getSchemaConfig();
 		logger = SystemConfiguration.getInstance().getLogger();
 		dialect = config.DIALECT;
 
