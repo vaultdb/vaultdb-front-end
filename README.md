@@ -5,6 +5,7 @@ This suite demos a parser for extracting a DAG of database operators from a SQL 
 
 ## Dependencies
 
-This system builds with (TODO):
-* Java XX
-* Maven YY
+We recommend using this with:
+* Java 18
+* Maven 4+
+* PostgreSQL 12+
