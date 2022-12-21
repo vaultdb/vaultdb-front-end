@@ -10,16 +10,17 @@ We recommend using this with:
 * Maven 4+
 * PostgreSQL 12+
 
-Maven manages the remaining dependencies.
+Maven manages the remaining dependencies.  To reproduce the experiments...
+** TODO: Xiling post pg_dumps of the tpch_dbs we used.  AFAIK, we don't have scripts to automate converting from float to int**
 
-
-## Parsing a SQL Query to Its Canonicalized Query Tree
 
 Build this with:
 
 ```
 mvn compile
 ```
+## Parsing a SQL Query to Its Canonicalized Query Tree
+
 
 To generate a JSON query execution plan, run:
 ```
