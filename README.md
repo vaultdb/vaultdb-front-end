@@ -11,7 +11,9 @@ We recommend using this with:
 * PostgreSQL 12+
 
 Maven manages the remaining dependencies.  To reproduce the experiments...
-** TODO: Xiling post pg_dumps of the tpch_dbs we used.  AFAIK, we don't have scripts to automate converting from float to int**
+
+
+**TODO: Xiling post pg_dumps of the tpch_dbs we used.  AFAIK, we don't have scripts to automate converting from floats to ints**
 
 
 Build this with:
