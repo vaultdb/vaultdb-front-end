@@ -10,7 +10,7 @@ We recommend using this with:
 * Maven 4+
 * PostgreSQL 12+
 
-Maven handles the remaining dependencies.
+Maven manages the remaining dependencies.
 
 Build this with:
 
