@@ -12,8 +12,19 @@ We recommend using this with:
 
 Maven handles the remaining dependencies.
 
-You can build this with:
+Build this with:
 
 ```
 mvn compile
+```
+
+To generate a JSON query execution plan, run:
+```
+mvn compile exec:java -Dexec.mainClass="org.vaultdb.ParseSqlToJson" -Dexec.args="<db name> <file with SQL query>  <path to write output file>"
+```
+
+For example, to prepare a query for the `tpch` database in PostgreSQL with the query stored in `conf/workload/tpch/queries/01.sql` writing its output to `conf/workload/tpch/plans/01.json`, run:
+
+```
+mvn compile exec:java -Dexec.mainClass="org.vaultdb.ParseSqlToJson" -Dexec.args="tpch   conf/workload/tpch/queries/01.sql  conf/workload/tpch/plans"
 ```
