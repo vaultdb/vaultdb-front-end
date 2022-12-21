@@ -12,6 +12,9 @@ We recommend using this with:
 
 Maven manages the remaining dependencies.
 
+
+## Parsing a SQL Query to Its Canonicalized Query Tree
+
 Build this with:
 
 ```
