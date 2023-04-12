@@ -10,10 +10,10 @@ We recommend using this with:
 * Maven 4+
 * PostgreSQL 12+
 
-Maven manages the remaining dependencies.  To reproduce the experiments...
+Maven manages the remaining dependencies. Please execute maven under zksql main directory.
 
 
-**TODO: Xiling post pg_dumps of the tpch_dbs we used.  AFAIK, we don't have scripts to automate converting from floats to ints**
+**TODO: AFAIK, we don't have scripts to automate converting from floats to ints**
 
 
 Build this with:
