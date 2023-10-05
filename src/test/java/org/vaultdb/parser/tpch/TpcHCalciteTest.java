@@ -174,7 +174,7 @@ public class TpcHCalciteTest extends TpcHBaseTest {
 		  SecureRelRoot root = new SecureRelRoot(testName, sql);
 
 
-		  String plan = RelOptUtil.dumpPlan("", root.getRelRoot().rel, SqlExplainFormat.TEXT, SqlExplainLevel.ALL_ATTRIBUTES);
+		  String plan = RelOptUtil.dumpPlan("", root.getRelRoot().rel, SqlExplainFormat.JSON, SqlExplainLevel.ALL_ATTRIBUTES);
 
 		//  String json = RelOptUtil.dumpPlan("", root.getRelRoot().rel, SqlExplainFormat.TEXT, SqlExplainLevel.);
 		  logger.info("Parsed plan for " + testName + ":\n" + plan);

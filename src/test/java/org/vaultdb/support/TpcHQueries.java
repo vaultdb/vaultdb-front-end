@@ -8,31 +8,11 @@ public class TpcHQueries {
 
     public static final List<String> QUERIES = ImmutableList.of(
             // 01
-            "WITH q1_projection AS (SELECT l_returnflag, l_linestatus, l_quantity, l_discount, l_extendedprice, l_extendedprice * (1 - l_discount) AS disc_price, l_extendedprice * (1 - l_discount) * (1 + l_tax) AS charge, l_shipdate\n"
-                  +  "FROM lineitem\n"
-                    + "ORDER BY l_returnflag, l_linestatus)\n"
-           + "select\n"
-                    + "  l_returnflag,\n"
-                    + "  l_linestatus,\n"
-                    + "  sum(l_quantity) as sum_qty,\n"
-                    + "  sum(l_extendedprice) as sum_base_price,\n"
-                    + "  sum(disc_price) as sum_disc_price,\n"
-                    + "  sum(charge) as sum_charge,\n"
-                    + "  avg(l_quantity) as avg_qty,\n"
-                    + "  avg(l_extendedprice) as avg_price,\n"
-                    + "  avg(l_discount) as avg_disc,\n"
-                    + "  count(*) as count_order\n"
-                    + "from\n"
-                    + "  q1_projection\n"
-                    + " where\n"
-                    + "  l_shipdate <= date '1998-08-03'\n"
-                    + "group by\n"
-                    + "  l_returnflag,\n"
-                    + "  l_linestatus\n"
-                    + "\n"
-                    + "order by\n"
-                    + "  l_returnflag,\n"
-                    + "  l_linestatus",
+            "SELECT  l_returnflag,  l_linestatus,  SUM(l_quantity) as sum_qty, SUM(l_extendedprice) as sum_base_price, SUM(l_extendedprice * (1 - l_discount)) as sum_disc_price,  SUM(l_extendedprice * (1 - l_discount) * (1 + l_tax)) as sum_charge, AVG(l_quantity) as avg_qty,  AVG(l_extendedprice) as avg_price,  AVG(l_discount) as avg_disc,   COUNT(*) as count_order \n"
+            + "FROM  lineitem \n"
+            + "WHERE  l_shipdate <= date '1998-08-03' \n"
+            +  "GROUP BY  l_returnflag, l_linestatus \n"
+            + "ORDER BY  l_returnflag,  l_linestatus",
 
             // 02
             "WITH min_ps_supplycost AS ("
@@ -86,32 +66,13 @@ public class TpcHQueries {
                     + "limit 100",
 
             // 03
-            "select\n"
-                    + "  l.l_orderkey,\n"
-                    + "  sum(revenue) as revenue,\n"
-                    + "  o.o_orderdate,\n"
-                    + "  o.o_shippriority\n"
-                    + "\n"
-                    + "from\n"
-                    + "  customer c,\n"
-                    + "  orders o,\n"
-                    + "  (SELECT l_orderkey, l_shipdate, l_extendedprice * (1 - l_discount) revenue FROM lineitem) l\n"
-                    + "\n"
-                    + "where\n"
-                    + "  c.c_mktsegment = 'HOUSEHOLD'\n"
-                    + "  and c.c_custkey = o.o_custkey\n"
-                    + "  and l.l_orderkey = o.o_orderkey\n"
-                    + "  and o.o_orderdate < date '1995-03-25'\n"
-                    + "  and l.l_shipdate > date '1995-03-25'\n"
-                    + "\n"
-                    + "group by\n"
-                    + "  l.l_orderkey,\n"
-                    + "  o.o_orderdate,\n"
-                    + "  o.o_shippriority\n"
-                    + "order by\n"
-                    + "  revenue desc,\n"
-                    + "  o.o_orderdate\n"
-                    + "limit 10",
+            "SELECT o_orderkey,  sum(l.l_extendedprice * (1 - l.l_discount)) as revenue, o_orderdate, o_shippriority "
+            + " FROM customer c JOIN orders o ON  c.c_custkey = o.o_custkey\n"
+            + "     JOIN lineitem l ON l.l_orderkey = o.o_orderkey\n"
+            + " WHERE  c.c_mktsegment = 'HOUSEHOLD'  AND o.o_orderdate < date '1995-03-25' AND l.l_shipdate > date '1995-03-25' "
+            + " GROUP BY  o_orderkey, o.o_orderdate,  o.o_shippriority\n"
+            + " ORDER BY  revenue DESC, o.o_orderdate "
+            + " LIMIT 10",
 
             // 04
             "SELECT o_orderpriority, COUNT(*) as order_count \n"
@@ -119,40 +80,50 @@ public class TpcHQueries {
                     + "WHERE o_orderdate >= date '1993-07-01' AND o_orderdate < date '1998-12-01' AND l_commitdate < l_receiptdate\n"
                     + "GROUP BY  o_orderpriority\n"
                     + "ORDER BY o_orderpriority\n",
+            // 05
+            "SELECT n.n_name, SUM(l.l_extendedprice * (1 - l.l_discount)) as revenue\n"
+            + " FROM  customer c JOIN orders o ON c.c_custkey = o.o_custkey\n"
+            + "     JOIN lineitem l ON l.l_orderkey = o.o_orderkey\n"
+            + "     JOIN supplier s ON l.l_suppkey = s.s_suppkey\n"
+            + "     JOIN nation n ON s.s_nationkey = n.n_nationkey\n"
+            + "     JOIN region r ON n.n_regionkey = r.r_regionkey\n"
+            + "WHERE c.c_nationkey = s.s_nationkey  AND r.r_name = 'EUROPE' AND o.o_orderdate >= date '1993-01-01' AND o.o_orderdate < date '1994-01-01'\n"
+            + " GROUP BY   n.n_name\n"
+            + " ORDER BY revenue DESC",
 
             // 05
-            "WITH snr as (SELECT * from region r"
-                    + " JOIN nation n ON n.n_regionkey = r.r_regionkey"
-                    + " JOIN supplier s ON s.s_nationkey = n.n_nationkey"
-                    + "  where r.r_name = 'EUROPE'\n"
-                    + "),"
-            + "cnr as (SELECT * from region r"
-                    + " JOIN nation n ON n.n_regionkey = r.r_regionkey"
-                    + " JOIN customer c ON c.c_nationkey = n.n_nationkey"
-                    + "  where r.r_name = 'EUROPE'\n"
-                    + ")"
-            + "select\n"
-                    + "  cnr.n_name,\n"
-                    + "  sum(l.l_extendedprice * (1 - l.l_discount)) as revenue\n"
-                    + "\n"
-                    + "from\n"
-                    + "  cnr,\n"
-                    + "  orders o,\n"
-                    + "  lineitem l,\n"
-                    + "  snr\n"
-                    + "\n"
-                    + "where\n"
-                    + "  cnr.c_custkey = o.o_custkey\n"
-                    + "  and l.l_orderkey = o.o_orderkey\n"
-                    + "  and l.l_suppkey = snr.s_suppkey\n"
-                    + "  and cnr.c_nationkey = snr.s_nationkey\n"
-                    + "  and o.o_orderdate >= date '1997-01-01'\n"
-                    + "  and o.o_orderdate < date '1998-01-01'\n"
-                    + "group by\n"
-                    + "  cnr.n_name\n"
-                    + "\n"
-                    + "order by\n"
-                    + "  revenue desc",
+//            "WITH snr as (SELECT * from region r"
+//                    + " JOIN nation n ON n.n_regionkey = r.r_regionkey"
+//                    + " JOIN supplier s ON s.s_nationkey = n.n_nationkey"
+//                    + "  where r.r_name = 'EUROPE'\n"
+//                    + "),"
+//            + "cnr as (SELECT * from region r"
+//                    + " JOIN nation n ON n.n_regionkey = r.r_regionkey"
+//                    + " JOIN customer c ON c.c_nationkey = n.n_nationkey"
+//                    + "  where r.r_name = 'EUROPE'\n"
+//                    + ")"
+//            + "select\n"
+//                    + "  cnr.n_name,\n"
+//                    + "  sum(l.l_extendedprice * (1 - l.l_discount)) as revenue\n"
+//                    + "\n"
+//                    + "from\n"
+//                    + "  cnr,\n"
+//                    + "  orders o,\n"
+//                    + "  lineitem l,\n"
+//                    + "  snr\n"
+//                    + "\n"
+//                    + "where\n"
+//                    + "  cnr.c_custkey = o.o_custkey\n"
+//                    + "  and l.l_orderkey = o.o_orderkey\n"
+//                    + "  and l.l_suppkey = snr.s_suppkey\n"
+//                    + "  and cnr.c_nationkey = snr.s_nationkey\n"
+//                    + "  and o.o_orderdate >= date '1997-01-01'\n"
+//                    + "  and o.o_orderdate < date '1998-01-01'\n"
+//                    + "group by\n"
+//                    + "  cnr.n_name\n"
+//                    + "\n"
+//                    + "order by\n"
+//                    + "  revenue desc",
 
             // 05
 //            "WITH snr as (SELECT * from supplier s"
@@ -250,81 +221,68 @@ public class TpcHQueries {
                     + "  supp_nation,\n"
                     + "  cust_nation,\n"
                     + "  l_year",
-
+            // 08
+            "SELECT   o_year, SUM(CASE WHEN  n_nation = 'KENYA' THEN volume ELSE 0.0 END) / SUM(VOLUME) AS mkt_share "
+            + "FROM ( SELECT CAST(o_orderyear AS INT) AS o_year, l.l_extendedprice * (1 - l.l_discount) AS volume,  n2.n_name as n_nation "
+            + "       FROM part p, supplier s, lineitem l, orders o, customer c, nation n1, nation n2, region r "
+            + "       WHERE p.p_partkey = l.l_partkey AND s.s_suppkey = l.l_suppkey AND l.l_orderkey = o.o_orderkey AND  o.o_custkey = c.c_custkey "
+            + "             AND c.c_nationkey = n1.n_nationkey AND n1.n_regionkey = r.r_regionkey AND r.r_name = 'AFRICA' AND s.s_nationkey = n2.n_nationkey "
+            + "             AND o.o_orderdate BETWEEN DATE '1995-01-01' AND DATE '1996-12-31' AND  p.p_type = 'LARGE ANODIZED STEEL') AS all_nations "
+            + "GROUP BY o_year "
+            + "ORDER BY o_year",
             // 08 rewrite
-            "WITH order_year AS (\n" +
-                    "     SELECT o.o_orderkey, o.o_custkey, o_orderyear as o_year\n" +
-                    "     FROM orders o\n" +
-                    "     WHERE  o.o_orderdate >= date '1995-01-01'\n" +
-                    "       AND  o.o_orderdate <= date '1996-12-31'\n" +
-                    "),\n" +
-                    "supplier_nation AS (\n" +
-                    "\t\tSELECT s_suppkey, n_nationkey, n_name,  CASE WHEN n_name = 'EGYPT' THEN 1 ELSE 0 END nation_check\n" +
-                    "\t\tFROM nation JOIN supplier s ON s.s_nationkey = n_nationkey),\n" +
-                    " parts_lineitem_supplier_nation AS (\n" +
-                    "    SELECT l_extendedprice, l_discount, s_suppkey, n_nationkey, n_name, nation_check, l_orderkey\n" +
-                    "    FROM part p JOIN lineitem ON l_partkey = p_partkey\n" +
-                    "        JOIN supplier_nation ON s_suppkey = l_suppkey\n" +
-                    "    WHERE p.p_type = 'PROMO BRUSHED COPPER'),\n" +
-                    "all_nations AS (\n" +
-                    "    select\n" +
-                    "      o_year,\n" +
-                    "      l.l_extendedprice * (1.0 - l.l_discount) as volume,\n" +
-                    "      l.n_name as nation,\n" +
-                    "      nation_check * l.l_extendedprice * (1.0 - l.l_discount)  as egypt_volume\n" +
-                    "    from\n" +
-                    "         nation n1 JOIN region r ON n1.n_regionkey = r.r_regionkey\n" +
-                    "            JOIN customer c ON n1.n_nationkey = c_nationkey\n" +
-                    "            JOIN order_year o ON o_custkey = c_custkey\n" +
-                    "            JOIN parts_lineitem_supplier_nation l ON l_orderkey = o_orderkey\n" +
-                    "    where\n" +
-                    "       r.r_name = 'MIDDLE EAST')\n" +
-                    "select\n" +
-                    "  o_year,\n" +
-                    "  sum(egypt_volume) / sum(volume) as mkt_share\n" +
-                    "from all_nations\n" +
-                    "group by\n" +
-                    "  o_year\n" +
-                    "order by\n" +
-                    "  o_year",
+//            "WITH order_year AS (\n" +
+//                    "     SELECT o.o_orderkey, o.o_custkey, o_orderyear as o_year\n" +
+//                    "     FROM orders o\n" +
+//                    "     WHERE  o.o_orderdate >= date '1995-01-01'\n" +
+//                    "       AND  o.o_orderdate <= date '1996-12-31'\n" +
+//                    "),\n" +
+//                    "supplier_nation AS (\n" +
+//                    "\t\tSELECT s_suppkey, n_nationkey, n_name,  CASE WHEN n_name = 'EGYPT' THEN 1 ELSE 0 END nation_check\n" +
+//                    "\t\tFROM nation JOIN supplier s ON s.s_nationkey = n_nationkey),\n" +
+//                    " parts_lineitem_supplier_nation AS (\n" +
+//                    "    SELECT l_extendedprice, l_discount, s_suppkey, n_nationkey, n_name, nation_check, l_orderkey\n" +
+//                    "    FROM part p JOIN lineitem ON l_partkey = p_partkey\n" +
+//                    "        JOIN supplier_nation ON s_suppkey = l_suppkey\n" +
+//                    "    WHERE p.p_type = 'PROMO BRUSHED COPPER'),\n" +
+//                    "all_nations AS (\n" +
+//                    "    select\n" +
+//                    "      o_year,\n" +
+//                    "      l.l_extendedprice * (1.0 - l.l_discount) as volume,\n" +
+//                    "      l.n_name as nation,\n" +
+//                    "      nation_check * l.l_extendedprice * (1.0 - l.l_discount)  as egypt_volume\n" +
+//                    "    from\n" +
+//                    "         nation n1 JOIN region r ON n1.n_regionkey = r.r_regionkey\n" +
+//                    "            JOIN customer c ON n1.n_nationkey = c_nationkey\n" +
+//                    "            JOIN order_year o ON o_custkey = c_custkey\n" +
+//                    "            JOIN parts_lineitem_supplier_nation l ON l_orderkey = o_orderkey\n" +
+//                    "    where\n" +
+//                    "       r.r_name = 'MIDDLE EAST')\n" +
+//                    "select\n" +
+//                    "  o_year,\n" +
+//                    "  sum(egypt_volume) / sum(volume) as mkt_share\n" +
+//                    "from all_nations\n" +
+//                    "group by\n" +
+//                    "  o_year\n" +
+//                    "order by\n" +
+//                    "  o_year",
+
             // 09
             "WITH order_years AS (\n"
-                    + "     SELECT o_orderyear as o_year, o.o_orderkey\n"
-                    + "     FROM orders o),\n"
+                    +  "     SELECT CAST(o_orderyear AS INT) as o_year, o.o_orderkey  \n"
+                    + " FROM orders o),\n"
                     + "     yellow_parts AS (\n"
                     + "         SELECT p_partkey\n"
-                    + "	 FROM part),\n" // omitting LIKE for now for ZKSQL
-                //    + "	 WHERE p_name like '%yellow%'),\n"
+                    + "      FROM part\n"
+                    + "      WHERE p_name like '%yellow%'),\n"
                     + "     profit AS (\n"
-                    + "         select\n"
-                    + "    	   n_name as nation,\n"
-                    + "     	    o_year,\n"
-                    + "      	    l.l_extendedprice * (1 - l.l_discount) - ps.ps_supplycost * l.l_quantity as amount\n"
-                    + "    	  from\n"
-                    + "      	    nation n,\n"
-                    + "      	    supplier s,\n"
-                    + "      	    partsupp ps,\n"
-                    + "    	        yellow_parts p,\n"
-                    + "      	    lineitem l,\n"
-                    + "      	    order_years o\n"
-                    + "    where\n"
-                    + "      p.p_partkey = ps.ps_partkey\n"
-                    + "      and ps.ps_suppkey = s.s_suppkey\n"
-                    + "      and ps.ps_suppkey = l.l_suppkey\n"
-                    + "      and ps.ps_partkey = l.l_partkey\n"
-                    + "      and o.o_orderkey = l.l_orderkey\n"
-                    + "      and s.s_nationkey = n.n_nationkey)\n" // yellow parts moved up
-                    + "select\n"
-                    + "  nation,\n"
-                    + "  o_year,\n"
-                    + "  sum(amount) as sum_profit\n"
-                    + "from profit\n"
-                    + "group by\n"
-                    + "  nation,\n"
-                    + "  o_year\n"
-                    + "order by\n"
-                    + "  nation,\n"
-                    + "  o_year desc\n",
+                    + "         SELECT   n_name, o_year, l.l_extendedprice * (1 - l.l_discount) - ps.ps_supplycost * l.l_quantity as amount"
+                    + "       FROM     yellow_parts p, supplier s, lineitem l, partsupp ps,  order_years o,  nation n \n"
+                    + "    WHERE  s.s_suppkey = l.l_suppkey AND ps.ps_suppkey = l.l_suppkey AND ps.ps_partkey = l.l_partkey AND p.p_partkey = l.l_partkey AND o.o_orderkey = l.l_orderkey AND s.s_nationkey = n.n_nationkey)"
+                    + " SELECT n_name, o_year, SUM(amount) as sum_profit\n"
+                    + " FROM profit\n"
+                    + " GROUP BY n_name, o_year \n"
+                    + " ORDER BY n_name, o_year DESC",
 
             // 10
             "select\n"
@@ -572,7 +530,7 @@ public class TpcHQueries {
                     + "      lineitem\n"
                     + "    group by\n"
                     + "      l_orderkey having\n"
-                    + "        sum(l_quantity) > 313\n"
+                    + "        sum(l_quantity) > 7\n"
                     + "  )\n"
                     + "  and c.c_custkey = o.o_custkey\n"
                     + "  and o.o_orderkey = l.l_orderkey\n"

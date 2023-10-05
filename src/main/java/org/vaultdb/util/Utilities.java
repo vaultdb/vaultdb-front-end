@@ -340,4 +340,60 @@ public class Utilities {
     return rexNodes;
   }
 
+  // partition key helps us deduce what tables can be joined unencrypted (locally) with oblivious
+  // padding
+  public static boolean isLocalPartitionKey(SecureRelRecordType table, SecureRelDataTypeField attr)
+          throws Exception {
+
+    // only supporting a single partition key defined for now
+    SystemConfiguration config = SystemConfiguration.getInstance();
+    String name;
+    if (attr.isAliased()) {
+      name = attr.getUnaliasedName();
+    } else {
+      name = attr.getName();
+    }
+
+    String srcTable = attr.getStoredTable();
+
+
+    SystemCatalog schemaDef = SystemCatalog.getInstance();
+    List<SecureRelDataTypeField> primaryKey = table.getPrimaryKeys();
+
+    if (name == null || srcTable == null)
+      return false; // TODO: work out transitive closure later based on slice key inference
+    // Case 1: if it is the source relation's stored partition key
+    String partitionKey = schemaDef.getPartitionKey(srcTable);
+
+    if (partitionKey == null) return false;
+
+    if (partitionKey.equals(name)) {
+      return true;
+    }
+
+    // Case 2: the partition key is not a match and no primary keys
+    if (primaryKey == null) {
+      return false;
+    }
+
+    // Case 3: if there is a primary key, then any partition key will automatically divide this up
+    // by primary key since the latter admits no duplicates
+    if (primaryKey.get(0).getName().equals(name)
+            && primaryKey.size() == 1
+            && schemaDef.getPartitionKey(srcTable) != null) {
+      return true;
+    }
+
+    // TODO: remove hardcode, lineitem is a special case where linenumber will be partitioned along
+    // with orderkey
+    // owing to its semantics of counting the items in an order
+    if (config.getProperty("schema-name").equals("tpch") && name.equals("l_orderkey")) {
+      return true;
+    }
+
+    // else false
+    return false;
+  }
+
+
 }

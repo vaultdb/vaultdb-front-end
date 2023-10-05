@@ -225,6 +225,13 @@ public class SecureRelRecordType implements Serializable {
 		return offset;
 	}
 
+	public List<SecureRelDataTypeField> getPrimaryKeys() {
+	/*	if(tableDefinition != null) {
+			return tableDefinition.getPrimaryKeys();
+		}*/
+
+		return null;
+	}
 
 
 

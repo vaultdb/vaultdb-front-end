@@ -114,6 +114,8 @@ public class SystemCatalog {
             System.exit(-1);
         }
 
+        if(tables.contains("bit_packing")) tables.remove("bit_packing"); // ignore metadata
+
         for (String table : tables) {
             try {
                 tableCardinalities.put(table, collectTableCardinalities(table, aliceConnection, bobConnection));
