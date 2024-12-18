@@ -108,10 +108,10 @@ public class Aggregate extends Operator {
 	
 	@Override
 	public void inferExecutionMode() throws Exception {
-	
+
 		Operator child = children.get(0);
 		child.inferExecutionMode();
-		
+
 		executionMode = new ExecutionMode(child.executionMode);
 
 		// we already know inputs are partitioned-alike
@@ -121,24 +121,24 @@ public class Aggregate extends Operator {
 		if(!child.executionMode.distributed) {
 			List<SecureRelDataTypeField> attrs = this.getGroupByAttributes();
 
-			// TODO: return to this
-			//for(SecureRelDataTypeField attr : attrs) {
-			//	if(Utilities.isLocalPartitionKey(getSchema(), attr))
-				//	partitioned = true;
-			//}
-			
-			
+			for(SecureRelDataTypeField attr : attrs) {
+				if(Utilities.isLocalPartitionKey(getSchema(), attr))
+					partitioned = true;
+			}
+
+
 		}
-		
+
 		SecurityPolicy maxExecutionMode = super.maxAccessLevel();
 		if(maxExecutionMode != SecurityPolicy.Public)
 			executionMode.oblivious = true;
-		
+
 		if(!partitioned)
 			executionMode.distributed = true;
 	}
-		
-	
+
+
+
 	private boolean childrenLocal() {
 		
 		for(Operator op : children) {
