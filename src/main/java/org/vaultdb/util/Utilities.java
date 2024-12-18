@@ -67,7 +67,6 @@ public class Utilities {
     try {
       mpcLib = SystemConfiguration.getInstance().getProperty("mpc-lib");
     } catch (Exception e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
     }
     return getVaultDBRoot() + "/conf/smc/operators/" + mpcLib;
