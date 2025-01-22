@@ -211,23 +211,11 @@ ExecutionMode executionMode = null;
           }
         } // end schema matcher
 
-       // TODO: return to this later
-       // if (lhsPartitionBy == null || rhsPartitionBy == null) {
-        //  local = false;
-       // } else if (!(Utilities.isLocalPartitionKey(lhsChild.getSchema(), lhsPartitionBy)
-        //    && Utilities.isLocalPartitionKey(rhsChild.getSchema(), rhsPartitionBy))) local = false;
+
       } // end for each predicate
       return local;
     } // end if binary op
 
-    // TODO: return to this
-    // single input, e.g., aggregate
-    //List<SecureRelDataTypeField> fields = this.computesOn();
-   // for (SecureRelDataTypeField aField : fields) {
-    //  if (!Utilities.isLocalPartitionKey(children.get(0).getSchema(), aField)) {
-      //  local = false;
-     // }
-    //}
 
     // end unary case
     return local;

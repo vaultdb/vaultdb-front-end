@@ -13,9 +13,6 @@ We recommend using this with:
 Maven manages the remaining dependencies.
 
 
-**TODO: AFAIK, we don't have scripts to automate converting from floats to ints**
-
-
 Build this with:
 
 ```

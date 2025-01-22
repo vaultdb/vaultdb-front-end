@@ -120,7 +120,7 @@ public class SystemCatalog {
             try {
                 tableCardinalities.put(table, collectTableCardinalities(table, aliceConnection, bobConnection));
             } catch (Exception e) {
-                // TODO Auto-generated catch block
+                
                 e.printStackTrace();
 
                 System.exit(-1);
@@ -179,7 +179,7 @@ public class SystemCatalog {
         try {
             operatorCardinalityBounds.put(operator, cardinality);
         } catch (Exception e) {
-            // TODO Auto-generated catch block
+            
             e.printStackTrace();
 
             System.exit(-1);
