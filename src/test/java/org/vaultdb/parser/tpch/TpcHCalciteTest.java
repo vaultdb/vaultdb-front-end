@@ -1,5 +1,6 @@
 package org.vaultdb.parser.tpch;
 
+import java.util.logging.Level;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,11 +14,18 @@ import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.sql.SqlExplainFormat;
 import org.apache.calcite.sql.SqlExplainLevel;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TpcHCalciteTest extends TpcHBaseTest {
 
 	Map<String, ArrayList<RelNode> > operatorHistogram;
 	Map<String, Integer> globalOperatorCounts;
+	private static final Logger logger = LoggerFactory.getLogger(TpcHCalciteTest.class);
 	
 	
 	
@@ -161,28 +169,44 @@ public class TpcHCalciteTest extends TpcHBaseTest {
 		}
 
 
-		
-	  // test the lifecycle of parsing, creating DAG, and regenerating SQL
-	  // does it produce the same results after these transformations?
-	  protected void testCase(String testName, String sql) throws Exception {
-	  	  SystemConfiguration.getInstance().resetCounters();
-	  	  
-	      // TODO: this should not matter anymore with the new, more descriptive ExecutionMode
-	  	  // see if we can deprecate it
-	  	  SystemConfiguration.getInstance().setProperty("code-generator-mode","debug");
+		// Test case method
+    protected void testCase(String testName, String sql) throws Exception {
+        SystemConfiguration.getInstance().resetCounters();
 
-		  SecureRelRoot root = new SecureRelRoot(testName, sql);
+        // Set system property for debug mode
+        SystemConfiguration.getInstance().setProperty("code-generator-mode", "debug");
 
+        SecureRelRoot root = new SecureRelRoot(testName, sql);
 
-		  String plan = RelOptUtil.dumpPlan("", root.getRelRoot().rel, SqlExplainFormat.JSON, SqlExplainLevel.ALL_ATTRIBUTES);
+        // Generate plan in JSON format
+        String plan = RelOptUtil.dumpPlan("", root.getRelRoot().rel, SqlExplainFormat.JSON, SqlExplainLevel.ALL_ATTRIBUTES);
 
-		//  String json = RelOptUtil.dumpPlan("", root.getRelRoot().rel, SqlExplainFormat.TEXT, SqlExplainLevel.);
-		  logger.info("Parsed plan for " + testName + ":\n" + plan);
+        logger.info("Parsed plan for " + testName + ":\n" + plan);
 
+        // Store the JSON plan into a file
+        storePlanToFile(testName, plan);
+    }
 
-	  }
-	  
-	  
-		 
+    private void storePlanToFile(String testName, String plan) {
+    try {
+        // Define the directory to store the plans
+        File directory = new File("plans");
+        if (!directory.exists()) {
+            directory.mkdir(); // Create the directory if it doesn't exist
+        }
 
+        // Define the file path
+        File file = new File(directory,  testName + ".json");
+
+        // Write the plan to the file
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            writer.write(plan);
+        }
+
+        logger.info("Plan for " + testName + " stored in " + file.getAbsolutePath());
+    } catch (Exception e) {
+        logger.error("Failed to store plan for " + testName, e);
+    }
 }
+
+}	
