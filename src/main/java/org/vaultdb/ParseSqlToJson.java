@@ -60,10 +60,6 @@ public class ParseSqlToJson {
 
 
 
-
-
-
-
         SecureRelRoot root = new SecureRelRoot(testName, sql);
 
         String logicalPlan = RelOptUtil.dumpPlan("", root.getRelRoot().rel, SqlExplainFormat.TEXT, SqlExplainLevel.ALL_ATTRIBUTES);

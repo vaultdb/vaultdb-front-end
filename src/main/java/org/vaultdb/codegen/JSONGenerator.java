@@ -7,26 +7,32 @@ import jakarta.json.*;
 import org.apache.calcite.plan.RelOptUtil;
 import org.apache.calcite.rel.RelCollation;
 import org.apache.calcite.rel.RelNode;
+import org.apache.calcite.rel.logical.LogicalJoin;
 import org.apache.calcite.rel.logical.LogicalValues;
 import org.apache.calcite.rel.rel2sql.RelToSqlConverter;
 import org.apache.calcite.rel.type.RelDataType;
+import org.apache.calcite.rel.type.RelDataTypeField;
+import org.apache.calcite.rex.*;
 import org.apache.calcite.sql.SqlExplainFormat;
 import org.apache.calcite.sql.SqlExplainLevel;
+import org.apache.calcite.sql.SqlKind;
 import org.apache.calcite.sql.SqlSelect;
 import org.apache.calcite.tools.FrameworkConfig;
 import org.apache.calcite.tools.RelBuilder;
+import org.apache.calcite.util.Pair;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.vaultdb.codegen.sql.SqlGenerator;
 import org.vaultdb.config.SystemConfiguration;
 import org.vaultdb.plan.SecureRelNode;
+import org.vaultdb.type.SecureRelDataTypeField;
+import org.vaultdb.type.SecureRelRecordType;
 import org.vaultdb.util.FileUtilities;
 import org.vaultdb.util.Utilities;
 import org.vaultdb.codegen.SqlInputForJSON;
 
 import java.io.StringReader;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 // treat this as a struct
 
@@ -105,7 +111,7 @@ public class JSONGenerator {
 
     // traverse tree and identify minimum covering set that must be performed under MPC with current tree config.
     // create secure leaf with LogicalValues and "sql" tag for input
-    public static String extractMPCMinimizedQueryPlan(SecureRelNode aRoot) throws Exception {
+    public static String extractMPCMinimizedQueryPlan(SecureRelNode aRoot, ArrayList<Map<String,String> > integrityConstraints) throws Exception {
         Map<RelNode, RelNode> replacements = new HashMap<RelNode, RelNode>();
         Map<Integer, SqlInputForJSON> planNodes =  new HashMap<Integer, SqlInputForJSON>();
         replacements = extractSQLFromSecureLeafs(aRoot, replacements, planNodes);
@@ -117,10 +123,11 @@ public class JSONGenerator {
 
         String rootJSON =  RelOptUtil.dumpPlan("", localCopy, SqlExplainFormat.JSON, SqlExplainLevel.DIGEST_ATTRIBUTES);
 
-        // TODO: parse json and insert "sql", collation, and PK-FK relationships
+        // TODO: parse json and insert collation
         JsonReader reader = Json.createReader(new StringReader(rootJSON));
         JsonObject ops = reader.readObject();
 
+        // first pass: add "sql" tag to each leaf node
         JsonArray rels = ops.getJsonArray("rels");
         JsonArrayBuilder dst_rel_builder = Json.createArrayBuilder();
 
@@ -152,12 +159,79 @@ public class JSONGenerator {
             }
         }
         JsonArray dst_array = dst_rel_builder.build();
-        JsonObject dst = Json.createObjectBuilder().add("rels", dst_array).build();
 
-        // pretty print it
+        // second pass: add "inputFields" and "outputFields" tag to all unary nodes
+        // for joins, add "fields" tag for output schema
+        Map<Integer, RelNode> relNodes = new HashMap<>();
+        extractRelNodes(localCopy, relNodes);
+
+        // start with leaf nodes, derive schema from corresponding RelNode
+        // leafs are LogicalValues and appear to be numbered from DFS traversal
+        // Example plan:
+        // LogicalSort#145
+        //-> LogicalAggregate#144
+        //   -> LogicalProject#143
+        //      -> LogicalJoin#142
+        //         -> LogicalJoin#136
+        //      	    -> LogicalValues#127
+        //      	    -> LogicalValues#128
+        //      	 ->LogicalValues#129
+
+        // TODO: JMR return here
+        // start by modularizing this code 1 / pass
+
+
+        // third pass: add PK-FK relationships
+
+        JsonObject src = Json.createObjectBuilder().add("rels", dst_array).build();
+
+         rels = src.getJsonArray("rels");
+        JsonArrayBuilder dstRelBuilder = Json.createArrayBuilder();
+
+        for(int i = 0; i < rels.size(); i++) {
+
+            JsonObject node = rels.getJsonObject(i);
+            int id = Integer.parseInt(node.getString("id"));
+            RelNode relNode = relNodes.get(id);
+            // JMR: need to embed name of field in JSON to map it to PK-FK relationships
+            if(relNode instanceof LogicalJoin) {
+                // check for PK-FK relationships
+                LogicalJoin join = (LogicalJoin) relNode;
+                RexNode predicate = join.getCondition();
+                RexBuilder rexBuilder = join.getCluster().getRexBuilder();
+                RexNode joinOn = RexUtil.toCnf(rexBuilder, predicate);
+                Map<String, String> joinKeys = new HashMap<>();
+                extractJoinKeys(joinOn, join.getRowType(), joinKeys);
+
+
+                // check if joinKeys are in integrityConstraints
+                int fkRelation = getForeignKeyRelation(joinKeys, integrityConstraints);
+                if(fkRelation != -1) {
+                    // add to JSON
+                    JsonObjectBuilder builder = Json.createObjectBuilder();
+                    for( Iterator<String> keys = node.keySet().iterator(); keys.hasNext(); ) {
+                        String key = keys.next();
+                        builder.add(key, node.get(key));
+                    }
+
+                    builder.add("foreignKey", fkRelation);
+                    JsonObject newRelNode = builder.build();
+                    dstRelBuilder.add(newRelNode);
+                }
+            }
+            else {
+                dstRelBuilder.add(node);
+            }
+
+        } // end for-loop for all rels
+
+
+        JsonArray dstArray = dstRelBuilder.build();
+        JsonObject dst = Json.createObjectBuilder().add("rels", dstArray).build();
+            // pretty print it
         ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
-        Object jsonObject = mapper.readValue(dst.toString(), Object.class);
-        return  mapper.writeValueAsString(jsonObject);
+        Object obj = mapper.readValue(dst.toString(), Object.class);
+        return  mapper.writeValueAsString(obj);
     }
 
     // disregard the access control (public/private) on each attribute.  Output entire query execution plan unconditionally
@@ -233,6 +307,84 @@ public class JSONGenerator {
         return replacements;
     }
 
+    // return a map of all RelNodes
+    // use this to deduce the PK-FK joins
+    static void extractRelNodes(RelNode relNode, Map<Integer, RelNode> nodes) throws Exception {
+        for(RelNode child : relNode.getInputs()) {
+            nodes.put(child.getId(), child);
+            extractRelNodes(child, nodes);
+        }
+
+    }
+
+    // only supports conjunctive predicates
+    static void extractJoinKeys(RexNode joinOn, RelDataType schema,  Map<String, String> keys) throws Exception {
+        if (joinOn.getKind() == SqlKind.AND) {  // TODO: handle > 2 selection criteria?
+            List<RexNode> operands = new ArrayList<RexNode>(((RexCall) joinOn).operands);
+            for (RexNode op : operands) {
+                extractJoinKeys(op, schema, keys);
+            }
+        } else if (joinOn.getKind() == SqlKind.EQUALS) {
+            RexCall cOp = (RexCall) joinOn;
+            RexNode lhs = cOp.getOperands().get(0);
+            RexNode rhs = cOp.getOperands().get(1);
+
+            if (lhs.getKind() == SqlKind.INPUT_REF && rhs.getKind() == SqlKind.INPUT_REF) {
+                RexInputRef lhsRef = (RexInputRef) lhs;
+                RexInputRef rhsRef = (RexInputRef) rhs;
+
+                int lOrdinal = lhsRef.getIndex();
+                int rOrdinal = rhsRef.getIndex();
+
+                // sort ordinals s.t. lhs comes first
+                if(lOrdinal > rOrdinal) {
+                    int tmp = lOrdinal;
+                    lOrdinal = rOrdinal;
+                    rOrdinal = tmp;
+                }
+
+                RelDataTypeField lField = schema.getFieldList().get(lOrdinal);
+                String lFieldName = lField.getName();
+
+                RelDataTypeField rField = schema.getFieldList().get(rOrdinal);
+                String rFieldName = rField.getName();
+
+                keys.put(lFieldName, rFieldName);
+
+            } else {
+                throw new Exception("Unsupported join predicate");
+            }
+        }
+    }
+
+    // returns 0 if lhs is FK, 1 if RHS is FK, -1 if neither
+    // integrity constraints are (FK, PK) pairs
+    static int getForeignKeyRelation(Map<String, String> joinKeys, ArrayList<Map<String, String> > integrityConstraints) {
+        int fk = -1;
+        for(Map<String, String> ic : integrityConstraints) {
+           if(ic.size() == joinKeys.size()) {
+               for (Map.Entry<String, String> entry : ic.entrySet()) {
+                   if (joinKeys.containsKey(entry.getKey()) && joinKeys.get(entry.getKey()).equals(entry.getValue())) {
+                       // if uninitialized, set to 0
+                       if (fk == -1) {
+                           fk = 0;
+                       }
+                       if (fk == 1) {
+                           return -1;
+                       } // not a match
+                   } else if (joinKeys.containsKey(entry.getValue()) && joinKeys.get(entry.getValue()).equals(entry.getKey())) {
+                       if (fk == -1) {
+                           fk = 1;
+                       }
+                       if (fk == 0) {
+                           return -1;
+                       } // not a match
+                   }
+               } // end for loop for this IC
+           } // end check that they have the same # of equalities
+        } // end for loop for all ICs
+        return fk;
+    }
 
 
 }
