@@ -227,7 +227,7 @@ public class JSONGenerator {
 
         JsonArray dstArray = dstRelBuilder.build();
         JsonObject j = Json.createObjectBuilder().add("rels", dstArray).build();
-        System.out.println("addPKFKRelationships  ending with " + j.toString());
+        System.out.println("addPKFKRelationships  ending with " +  prettyPrintJson(j));
 
         return j;
 
@@ -245,29 +245,39 @@ public class JSONGenerator {
         List<Integer> sortedKeys = relNodes.keySet().stream().sorted().collect(Collectors.toList());
         Iterator<Integer> keyPos = sortedKeys.iterator();
 
-        // remap for LogicalValues first
+        // map to BFS order
+        // Planner first serializes leafs, and seems to place remaining ops in BFS order
+        // occasionally it throws an extra projection on top.
+
+
+        Map<Integer, RelNode> leafs = new HashMap<>();
+        Map<Integer, RelNode> internalNodes = new HashMap<>();
+
+        // serialize LogicalValues first
         for (int i = 0; i < jsonOps.size(); i++) {
             JsonObject node = jsonOps.getJsonObject(i);
             if (node.getString("relOp").equals("LogicalValues")) {
                 Integer oldKey = keyPos.next();
-                dst.put(operatorIdCounter, relNodes.get(oldKey));
-                System.out.println(oldKey + " -> " + operatorIdCounter);
-                ++operatorIdCounter;
+                dst.put(i, relNodes.get(oldKey));
+                System.out.println(oldKey + " -> " + i);
+//                ++operatorIdCounter;
             }
 
         }
 
 
         // ok, now cover the remaining ones
+        // sorted key order forces us to do internal nodes after all leafs
         for (int i = 0; i < jsonOps.size(); i++) {
             if (!keyPos.hasNext()) break;
 
             JsonObject node = jsonOps.getJsonObject(i);
+
             if (!node.getString("relOp").equals("LogicalValues")) {
                 Integer oldKey = keyPos.next();
-                dst.put(operatorIdCounter, relNodes.get(oldKey));
-                System.out.println(oldKey + " -> " + operatorIdCounter);
-                ++operatorIdCounter;
+                dst.put(i, relNodes.get(oldKey));
+                System.out.println(oldKey + " -> " + i);
+//                ++operatorIdCounter;
             }
         }
 
