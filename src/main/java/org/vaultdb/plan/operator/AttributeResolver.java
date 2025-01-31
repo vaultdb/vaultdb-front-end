@@ -37,7 +37,7 @@ public class AttributeResolver {
 		if(baseNode instanceof LogicalJoin)
 			return resolveJoin(aNode);
 
-		if(baseNode instanceof JdbcTableScan)
+		if(baseNode instanceof JdbcTableScan || baseNode instanceof LogicalValues)
 			return resolveScan(aNode);
 		
 		if(baseNode instanceof LogicalProject)
