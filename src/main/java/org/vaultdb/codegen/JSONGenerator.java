@@ -2,53 +2,43 @@ package org.vaultdb.codegen;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.google.common.collect.ImmutableList;
 import jakarta.json.*;
 import org.apache.calcite.plan.RelOptUtil;
 import org.apache.calcite.rel.RelCollation;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.logical.LogicalJoin;
-import org.apache.calcite.rel.logical.LogicalValues;
-import org.apache.calcite.rel.rel2sql.RelToSqlConverter;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeField;
 import org.apache.calcite.rex.*;
 import org.apache.calcite.sql.SqlExplainFormat;
 import org.apache.calcite.sql.SqlExplainLevel;
 import org.apache.calcite.sql.SqlKind;
-import org.apache.calcite.sql.SqlSelect;
 import org.apache.calcite.tools.FrameworkConfig;
 import org.apache.calcite.tools.RelBuilder;
-import org.apache.calcite.util.Pair;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.vaultdb.codegen.sql.SqlGenerator;
 import org.vaultdb.config.SystemConfiguration;
 import org.vaultdb.plan.SecureRelNode;
-import org.vaultdb.type.SecureRelDataTypeField;
-import org.vaultdb.type.SecureRelRecordType;
 import org.vaultdb.util.FileUtilities;
 import org.vaultdb.util.Utilities;
-import org.vaultdb.codegen.SqlInputForJSON;
 
 import java.io.StringReader;
 import java.util.*;
+import java.util.stream.Collectors;
 
 // treat this as a struct
 
 public class JSONGenerator {
 
 
-
     // returns JSON of the MPC query tree
     // populates map with <Calcite OperatorID, SQL string > OR <operator ID, JSON> pairs
     public static String exportQueryPlan(SecureRelNode secureRelNode, String testName) throws Exception {
         Map<RelNode, RelNode> replacements = new HashMap<RelNode, RelNode>();
-        Map<Integer, String> planNodes =  new HashMap<Integer, String>();
+        Map<Integer, String> planNodes = new HashMap<Integer, String>();
         replacements = exportQueryPlanHelper(secureRelNode, replacements, planNodes);
         RelNode localCopy = secureRelNode.getRelNode();
 
-        for(Map.Entry<RelNode, RelNode> entry : replacements.entrySet()) {
+        for (Map.Entry<RelNode, RelNode> entry : replacements.entrySet()) {
             localCopy = RelOptUtil.replace(localCopy, entry.getKey(), entry.getValue());
         }
 
@@ -56,14 +46,14 @@ public class JSONGenerator {
         // write it into one long output
         String sqlOutput = new String();
         // first SQL statements:
-        for(Map.Entry<Integer, String> entry : planNodes.entrySet()) {
-            sqlOutput += "-- " + entry.getKey()   + "\n" + entry.getValue() + "\n";
+        for (Map.Entry<Integer, String> entry : planNodes.entrySet()) {
+            sqlOutput += "-- " + entry.getKey() + "\n" + entry.getValue() + "\n";
 
         }
 
         // now add the root node
         //Integer rootID = localCopy.getId();
-        String rootJSON =  RelOptUtil.dumpPlan("", localCopy, SqlExplainFormat.JSON, SqlExplainLevel.DIGEST_ATTRIBUTES);
+        String rootJSON = RelOptUtil.dumpPlan("", localCopy, SqlExplainFormat.JSON, SqlExplainLevel.DIGEST_ATTRIBUTES);
         String outFilename = Utilities.getVaultDBRoot() + "/src/test/java/org/vaultdb/test/plans/mpc-" + testName + ".json";
 
         FileUtilities.writeFile(outFilename, rootJSON);
@@ -71,18 +61,18 @@ public class JSONGenerator {
         String sqlFile = Utilities.getVaultDBRoot() + "/src/test/java/org/vaultdb/test/plans/queries-" + testName + ".sql";
         FileUtilities.writeFile(sqlFile, sqlOutput);
 
-        return sqlOutput + "[root=" + rootJSON+ "]";
+        return sqlOutput + "[root=" + rootJSON + "]";
 
     }
 
 
     public static String exportGenericQueryPlan(SecureRelNode secureRelNode, String testName, String dstPath) throws Exception {
         Map<RelNode, RelNode> replacements = new HashMap<RelNode, RelNode>();
-        Map<Integer, String> planNodes =  new HashMap<Integer, String>();
+        Map<Integer, String> planNodes = new HashMap<Integer, String>();
         replacements = exportQueryPlanHelper(secureRelNode, replacements, planNodes);
         RelNode localCopy = secureRelNode.getRelNode();
 
-        for(Map.Entry<RelNode, RelNode> entry : replacements.entrySet()) {
+        for (Map.Entry<RelNode, RelNode> entry : replacements.entrySet()) {
             localCopy = RelOptUtil.replace(localCopy, entry.getKey(), entry.getValue());
         }
 
@@ -90,14 +80,14 @@ public class JSONGenerator {
         // write it into one long output
         String sqlOutput = new String();
         // first SQL statements:
-        for(Map.Entry<Integer, String> entry : planNodes.entrySet()) {
-            sqlOutput += "-- " + entry.getKey()   + "\n" + entry.getValue() + "\n";
+        for (Map.Entry<Integer, String> entry : planNodes.entrySet()) {
+            sqlOutput += "-- " + entry.getKey() + "\n" + entry.getValue() + "\n";
 
         }
 
         // now add the root node
         //Integer rootID = localCopy.getId();
-        String rootJSON =  RelOptUtil.dumpPlan("", localCopy, SqlExplainFormat.JSON, SqlExplainLevel.DIGEST_ATTRIBUTES);
+        String rootJSON = RelOptUtil.dumpPlan("", localCopy, SqlExplainFormat.JSON, SqlExplainLevel.DIGEST_ATTRIBUTES);
         String outFilename = Utilities.getVaultDBRoot() + "/" + dstPath + "/mpc-" + testName + ".json";
 
         FileUtilities.writeFile(outFilename, rootJSON);
@@ -105,47 +95,56 @@ public class JSONGenerator {
         String sqlFile = Utilities.getVaultDBRoot() + "/" + dstPath + "/queries-" + testName + ".sql";
         FileUtilities.writeFile(sqlFile, sqlOutput);
 
-        return sqlOutput + "[root=" + rootJSON+ "]";
+        return sqlOutput + "[root=" + rootJSON + "]";
 
     }
 
     // traverse tree and identify minimum covering set that must be performed under MPC with current tree config.
     // create secure leaf with LogicalValues and "sql" tag for input
-    public static String extractMPCMinimizedQueryPlan(SecureRelNode aRoot, ArrayList<Map<String,String> > integrityConstraints) throws Exception {
+    public static String extractMPCMinimizedQueryPlan(SecureRelNode aRoot, ArrayList<Map<String, String>> integrityConstraints) throws Exception {
         Map<RelNode, RelNode> replacements = new HashMap<RelNode, RelNode>();
-        Map<Integer, SqlInputForJSON> planNodes =  new HashMap<Integer, SqlInputForJSON>();
+        Map<Integer, SqlInputForJSON> planNodes = new HashMap<Integer, SqlInputForJSON>();
         replacements = extractSQLFromSecureLeafs(aRoot, replacements, planNodes);
         RelNode localCopy = aRoot.getRelNode();
 
-        for(Map.Entry<RelNode, RelNode> entry : replacements.entrySet()) {
+        for (Map.Entry<RelNode, RelNode> entry : replacements.entrySet()) {
             localCopy = RelOptUtil.replace(localCopy, entry.getKey(), entry.getValue());
         }
 
-        String rootJSON =  RelOptUtil.dumpPlan("", localCopy, SqlExplainFormat.JSON, SqlExplainLevel.DIGEST_ATTRIBUTES);
+        String rootJSON = RelOptUtil.dumpPlan("", localCopy, SqlExplainFormat.JSON, SqlExplainLevel.DIGEST_ATTRIBUTES);
 
-        // TODO: parse json and insert collation
+        // first pass: add "sql" tag to each leaf node
+        JsonObject withSql = addSqlTagToLeafs(rootJSON, planNodes);
+        System.out.println("Relnode tree: ");
+        System.out.println(RelOptUtil.dumpPlan("", localCopy, SqlExplainFormat.TEXT, SqlExplainLevel.ALL_ATTRIBUTES));
+        JsonObject dst = addPKFKRelationships(withSql, localCopy, integrityConstraints);
+
+        // pretty print it
+        return prettyPrintJson(dst);
+    }
+
+
+    // returns "rels" array
+    static JsonObject addSqlTagToLeafs(String rootJSON, Map<Integer, SqlInputForJSON> planNodes) {
         JsonReader reader = Json.createReader(new StringReader(rootJSON));
         JsonObject ops = reader.readObject();
 
-        // first pass: add "sql" tag to each leaf node
         JsonArray rels = ops.getJsonArray("rels");
         JsonArrayBuilder dst_rel_builder = Json.createArrayBuilder();
 
-        for(int i = 0; i < rels.size(); i++) {
+        for (int i = 0; i < rels.size(); i++) {
 
             JsonObject relNode = rels.getJsonObject(i);
             int id = Integer.parseInt(relNode.getString("id"));
 
-            if(planNodes.containsKey(id)) {
+            if (planNodes.containsKey(id)) {
                 String sql = planNodes.get(id).getSql();
                 sql = sql.replaceAll("\\n", " ");
-
                 JsonValue sqlVal = Json.createValue(sql);
-
                 JsonObjectBuilder builder = Json.createObjectBuilder();
 
                 // iterate over relNode and add to builder
-                for( Iterator<String> keys = relNode.keySet().iterator(); keys.hasNext(); ) {
+                for (Iterator<String> keys = relNode.keySet().iterator(); keys.hasNext(); ) {
                     String key = keys.next();
                     builder.add(key, relNode.get(key));
                 }
@@ -153,48 +152,49 @@ public class JSONGenerator {
                 builder.add("sql", sqlVal);
                 JsonObject newRelNode = builder.build();
                 dst_rel_builder.add(newRelNode);
-            }
-            else {
+            } else {
                 dst_rel_builder.add(relNode);
             }
         }
         JsonArray dst_array = dst_rel_builder.build();
+        return Json.createObjectBuilder().add("rels", dst_array).build();
+    }
 
-        // second pass: add "inputFields" and "outputFields" tag to all unary nodes
+    // Q5:
+    // LogicalSort(sort0=[$1], dir0=[DESC]): rowcount = 1.0, cumulative cost = 14.137500047683716, id = 221
+    //  LogicalAggregate(group=[{0}], revenue=[SUM($1)]): rowcount = 1.0, cumulative cost = 13.137500047683716, id = 220
+    //    LogicalProject(n_name=[$11], $f1=[*($6, -(1, $7))]): rowcount = 1.0, cumulative cost = 12.0, id = 219
+    //      LogicalJoin(condition=[=($12, $13)], joinType=[inner]): rowcount = 1.0, cumulative cost = 11.0, id = 218
+    //        LogicalJoin(condition=[=($9, $10)], joinType=[inner]): rowcount = 1.0, cumulative cost = 9.0, id = 213
+    //          LogicalJoin(condition=[AND(=($5, $8), =($1, $9))], joinType=[inner]): rowcount = 1.0, cumulative cost = 7.0, id = 207
+    //            LogicalJoin(condition=[=($4, $2)], joinType=[inner]): rowcount = 1.0, cumulative cost = 5.0, id = 206
+    //              LogicalJoin(condition=[=($0, $3)], joinType=[inner]): rowcount = 1.0, cumulative cost = 3.0, id = 198
+    //                LogicalValues(tuples=[[]]): rowcount = 1.0, cumulative cost = {1.0 rows, 1.0 cpu, 0.0 io}, id = 178
+    //                LogicalValues(tuples=[[]]): rowcount = 1.0, cumulative cost = {1.0 rows, 1.0 cpu, 0.0 io}, id = 179
+    //              LogicalValues(tuples=[[]]): rowcount = 1.0, cumulative cost = {1.0 rows, 1.0 cpu, 0.0 io}, id = 180
+    //            LogicalValues(tuples=[[]]): rowcount = 1.0, cumulative cost = {1.0 rows, 1.0 cpu, 0.0 io}, id = 181
+    //          LogicalValues(tuples=[[]]): rowcount = 1.0, cumulative cost = {1.0 rows, 1.0 cpu, 0.0 io}, id = 182
+    //        LogicalValues(tuples=[[]]): rowcount = 1.0, cumulative cost = {1.0 rows, 1.0 cpu, 0.0 io}, id = 183
+
+    static JsonObject addPKFKRelationships(JsonObject src, RelNode root, ArrayList<Map<String, String>> integrityConstraints) throws Exception {
+
         // for joins, add "fields" tag for output schema
         Map<Integer, RelNode> relNodes = new HashMap<>();
-        extractRelNodes(localCopy, relNodes);
+        extractRelNodes(root, relNodes);
+        Map<Integer, RelNode> aligned = remapRelNodesToJsonIds(relNodes, src.getJsonArray("rels"));
 
-        // start with leaf nodes, derive schema from corresponding RelNode
-        // leafs are LogicalValues and appear to be numbered from DFS traversal
-        // Example plan:
-        // LogicalSort#145
-        //-> LogicalAggregate#144
-        //   -> LogicalProject#143
-        //      -> LogicalJoin#142
-        //         -> LogicalJoin#136
-        //      	    -> LogicalValues#127
-        //      	    -> LogicalValues#128
-        //      	 ->LogicalValues#129
+        System.out.println("addPKFKRelationships  starting with " + prettyPrintJson(src));
 
-        // TODO: JMR return here
-        // start by modularizing this code 1 / pass
-
-
-        // third pass: add PK-FK relationships
-
-        JsonObject src = Json.createObjectBuilder().add("rels", dst_array).build();
-
-         rels = src.getJsonArray("rels");
+        JsonArray rels = src.getJsonArray("rels");
         JsonArrayBuilder dstRelBuilder = Json.createArrayBuilder();
 
-        for(int i = 0; i < rels.size(); i++) {
+        for (int i = 0; i < rels.size(); i++) {
 
             JsonObject node = rels.getJsonObject(i);
             int id = Integer.parseInt(node.getString("id"));
-            RelNode relNode = relNodes.get(id);
-            // JMR: need to embed name of field in JSON to map it to PK-FK relationships
-            if(relNode instanceof LogicalJoin) {
+            RelNode relNode = aligned.get(id);
+
+            if (relNode instanceof LogicalJoin) {
                 // check for PK-FK relationships
                 LogicalJoin join = (LogicalJoin) relNode;
                 RexNode predicate = join.getCondition();
@@ -205,21 +205,20 @@ public class JSONGenerator {
 
 
                 // check if joinKeys are in integrityConstraints
-                int fkRelation = getForeignKeyRelation(joinKeys, integrityConstraints);
-                if(fkRelation != -1) {
+                int fkRelation = getForeignKeyRelationship(joinKeys, integrityConstraints);
+                if (fkRelation != -1) {
                     // add to JSON
                     JsonObjectBuilder builder = Json.createObjectBuilder();
-                    for( Iterator<String> keys = node.keySet().iterator(); keys.hasNext(); ) {
+                    for (Iterator<String> keys = node.keySet().iterator(); keys.hasNext(); ) {
                         String key = keys.next();
                         builder.add(key, node.get(key));
                     }
-
-                    builder.add("foreignKey", fkRelation);
+                    JsonValue fkValue = Json.createValue(fkRelation);
+                    builder.add("foreignKey", fkValue);
                     JsonObject newRelNode = builder.build();
                     dstRelBuilder.add(newRelNode);
                 }
-            }
-            else {
+            } else {
                 dstRelBuilder.add(node);
             }
 
@@ -227,31 +226,73 @@ public class JSONGenerator {
 
 
         JsonArray dstArray = dstRelBuilder.build();
-        JsonObject dst = Json.createObjectBuilder().add("rels", dstArray).build();
-            // pretty print it
-        ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
-        Object obj = mapper.readValue(dst.toString(), Object.class);
-        return  mapper.writeValueAsString(obj);
+        JsonObject j = Json.createObjectBuilder().add("rels", dstArray).build();
+        System.out.println("addPKFKRelationships  ending with " + j.toString());
+
+        return j;
+
+    }
+
+
+    public JSONGenerator() {
+    }
+
+    static Map<Integer, RelNode> remapRelNodesToJsonIds(Map<Integer, RelNode> relNodes, JsonArray jsonOps) {
+        Map<Integer, RelNode> dst = new HashMap<>();
+        int operatorIdCounter = 0;
+
+        assert (relNodes.size() <= jsonOps.size() - 1);
+        List<Integer> sortedKeys = relNodes.keySet().stream().sorted().collect(Collectors.toList());
+        Iterator<Integer> keyPos = sortedKeys.iterator();
+
+        // remap for LogicalValues first
+        for (int i = 0; i < jsonOps.size(); i++) {
+            JsonObject node = jsonOps.getJsonObject(i);
+            if (node.getString("relOp").equals("LogicalValues")) {
+                Integer oldKey = keyPos.next();
+                dst.put(operatorIdCounter, relNodes.get(oldKey));
+                System.out.println(oldKey + " -> " + operatorIdCounter);
+                ++operatorIdCounter;
+            }
+
+        }
+
+
+        // ok, now cover the remaining ones
+        for (int i = 0; i < jsonOps.size(); i++) {
+            if (!keyPos.hasNext()) break;
+
+            JsonObject node = jsonOps.getJsonObject(i);
+            if (!node.getString("relOp").equals("LogicalValues")) {
+                Integer oldKey = keyPos.next();
+                dst.put(operatorIdCounter, relNodes.get(oldKey));
+                System.out.println(oldKey + " -> " + operatorIdCounter);
+                ++operatorIdCounter;
+            }
+        }
+
+
+        return dst;
     }
 
     // disregard the access control (public/private) on each attribute.  Output entire query execution plan unconditionally
     // for use in ZKSQL
     public static String exportWholeQueryPlan(SecureRelNode aNode, String testName) throws Exception {
-	 String rootJSON =  RelOptUtil.dumpPlan("", aNode.getRelNode(), SqlExplainFormat.JSON, SqlExplainLevel.DIGEST_ATTRIBUTES);
-	 String outFilename = Utilities.getVaultDBRoot() + "/src/test/java/org/vaultdb/test/plans/whole/zk-" + testName + ".json";
+        String rootJSON = RelOptUtil.dumpPlan("", aNode.getRelNode(), SqlExplainFormat.JSON, SqlExplainLevel.DIGEST_ATTRIBUTES);
+        String outFilename = Utilities.getVaultDBRoot() + "/src/test/java/org/vaultdb/test/plans/whole/zk-" + testName + ".json";
 
-     FileUtilities.writeFile(outFilename, rootJSON);
+        FileUtilities.writeFile(outFilename, rootJSON);
 
-	 return rootJSON;
+        return rootJSON;
 
     }
-    
+
     // replace plaintext subtrees with their corresponding SQL statements
     // return map of before and after for secure leafs
     static Map<RelNode, RelNode> exportQueryPlanHelper(SecureRelNode relNode, Map<RelNode, RelNode> replacements, Map<Integer, String> sqlNodes) throws Exception {
-        for(SecureRelNode child : relNode.getChildren()) {
+        for (SecureRelNode child : relNode.getChildren()) {
             // if a local plan, replace with SQL and terminate, otherwise recurse
-            if(!child.getPhysicalNode().getExecutionMode().distributed) {
+            if (!child.getPhysicalNode().getExecutionMode().distributed) {
                 Integer idx = sqlNodes.size();
                 // Idx 1 + (idx  - 1) * 2 - may  need to frame this as a stack of inputs to get the right one as needed.
                 Integer operatorNo = (idx < 2) ? idx : 1 + (idx - 1) * 2;
@@ -264,12 +305,11 @@ public class JSONGenerator {
                 sqlNodes.put(operatorNo, sql);
 
                 // create an empty leaf
-                FrameworkConfig calciteConfig =  SystemConfiguration.getInstance().getCalciteConfiguration();
+                FrameworkConfig calciteConfig = SystemConfiguration.getInstance().getCalciteConfiguration();
                 final RelBuilder builder = RelBuilder.create(calciteConfig);
-                final RelNode leaf =  builder.values(child.getRelNode().getRowType()).build();
+                final RelNode leaf = builder.values(child.getRelNode().getRowType()).build();
                 replacements.put(child.getRelNode(), leaf);
-            }
-            else { // recurse
+            } else { // recurse
                 replacements = exportQueryPlanHelper(child, replacements, sqlNodes);
             }
         }
@@ -278,9 +318,9 @@ public class JSONGenerator {
 
 
     static Map<RelNode, RelNode> extractSQLFromSecureLeafs(SecureRelNode relNode, Map<RelNode, RelNode> replacements, Map<Integer, SqlInputForJSON> sqlNodes) throws Exception {
-        for(SecureRelNode child : relNode.getChildren()) {
+        for (SecureRelNode child : relNode.getChildren()) {
             // if a local plan, replace with SQL and terminate, otherwise recurse
-            if(!child.getPhysicalNode().getExecutionMode().distributed) {
+            if (!child.getPhysicalNode().getExecutionMode().distributed) {
                 Integer idx = sqlNodes.size();
                 // Idx 1 + (idx  - 1) * 2 - may  need to frame this as a stack of inputs to get the right one as needed.
                 Integer operatorNo = (idx < 2) ? idx : 1 + (idx - 1) * 2;
@@ -294,13 +334,12 @@ public class JSONGenerator {
                 sqlNodes.put(operatorNo, sIn);
 
                 // create an empty leaf
-                FrameworkConfig calciteConfig =  SystemConfiguration.getInstance().getCalciteConfiguration();
+                FrameworkConfig calciteConfig = SystemConfiguration.getInstance().getCalciteConfiguration();
                 final RelBuilder builder = RelBuilder.create(calciteConfig);
-                final RelNode leaf =  builder.values(child.getRelNode().getRowType()).build();
+                final RelNode leaf = builder.values(child.getRelNode().getRowType()).build();
 
                 replacements.put(child.getRelNode(), leaf);
-            }
-            else { // return existing list
+            } else { // return existing list
                 replacements = extractSQLFromSecureLeafs(child, replacements, sqlNodes);
             }
         }
@@ -310,7 +349,7 @@ public class JSONGenerator {
     // return a map of all RelNodes
     // use this to deduce the PK-FK joins
     static void extractRelNodes(RelNode relNode, Map<Integer, RelNode> nodes) throws Exception {
-        for(RelNode child : relNode.getInputs()) {
+        for (RelNode child : relNode.getInputs()) {
             nodes.put(child.getId(), child);
             extractRelNodes(child, nodes);
         }
@@ -318,8 +357,8 @@ public class JSONGenerator {
     }
 
     // only supports conjunctive predicates
-    static void extractJoinKeys(RexNode joinOn, RelDataType schema,  Map<String, String> keys) throws Exception {
-        if (joinOn.getKind() == SqlKind.AND) {  // TODO: handle > 2 selection criteria?
+    static void extractJoinKeys(RexNode joinOn, RelDataType schema, Map<String, String> keys) throws Exception {
+        if (joinOn.getKind() == SqlKind.AND) {
             List<RexNode> operands = new ArrayList<RexNode>(((RexCall) joinOn).operands);
             for (RexNode op : operands) {
                 extractJoinKeys(op, schema, keys);
@@ -337,7 +376,7 @@ public class JSONGenerator {
                 int rOrdinal = rhsRef.getIndex();
 
                 // sort ordinals s.t. lhs comes first
-                if(lOrdinal > rOrdinal) {
+                if (lOrdinal > rOrdinal) {
                     int tmp = lOrdinal;
                     lOrdinal = rOrdinal;
                     rOrdinal = tmp;
@@ -359,32 +398,44 @@ public class JSONGenerator {
 
     // returns 0 if lhs is FK, 1 if RHS is FK, -1 if neither
     // integrity constraints are (FK, PK) pairs
-    static int getForeignKeyRelation(Map<String, String> joinKeys, ArrayList<Map<String, String> > integrityConstraints) {
+    static int getForeignKeyRelationship(Map<String, String> joinKeys, ArrayList<Map<String, String>> integrityConstraints) {
         int fk = -1;
-        for(Map<String, String> ic : integrityConstraints) {
-           if(ic.size() == joinKeys.size()) {
-               for (Map.Entry<String, String> entry : ic.entrySet()) {
-                   if (joinKeys.containsKey(entry.getKey()) && joinKeys.get(entry.getKey()).equals(entry.getValue())) {
-                       // if uninitialized, set to 0
-                       if (fk == -1) {
-                           fk = 0;
-                       }
-                       if (fk == 1) {
-                           return -1;
-                       } // not a match
-                   } else if (joinKeys.containsKey(entry.getValue()) && joinKeys.get(entry.getValue()).equals(entry.getKey())) {
-                       if (fk == -1) {
-                           fk = 1;
-                       }
-                       if (fk == 0) {
-                           return -1;
-                       } // not a match
-                   }
-               } // end for loop for this IC
-           } // end check that they have the same # of equalities
-        } // end for loop for all ICs
+        for (Map<String, String> ic : integrityConstraints) {
+            // see if it matches the entirety of ic.  It's ok if this is only a subset of joinKey, e.g., s_nationkey = c_nationkey in Q5 of TPC-H
+            for (Map.Entry<String, String> entry : ic.entrySet()) {
+                // if joinKey lhs = FK, joinKey rhs = PK
+                if (joinKeys.containsKey(entry.getKey()) && joinKeys.get(entry.getKey()).equals(entry.getValue())) {
+                    if (fk == -1) {
+                        fk = 0;
+                    } else if (fk == 1) {
+                        fk = -1;  // try again with a different IC
+                        break;
+                    }
+                }
+
+                // joinKey lhs = PK, joinKey rhs = FK
+                else if (joinKeys.containsKey(entry.getValue()) && joinKeys.get(entry.getValue()).equals(entry.getKey())) {
+                    if (fk == -1) {
+                        fk = 1;
+                    } else if (fk == 1) {
+                        fk = -1;
+                        break;
+                    }
+                }
+
+            } // end for loop on this IC
+            // if we found a match, return this one greedily
+           if(fk != -1) return fk;
+        }
         return fk;
     }
 
+
+    static String prettyPrintJson(JsonObject j) throws Exception {
+        // pretty print it
+        ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+        Object obj = mapper.readValue(j.toString(), Object.class);
+        return  mapper.writeValueAsString(obj);
+    }
 
 }

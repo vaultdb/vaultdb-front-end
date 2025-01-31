@@ -1,10 +1,5 @@
 package org.vaultdb.planner;
 
-import com.google.common.collect.ImmutableList;
-import org.apache.calcite.plan.RelOptUtil;
-import org.apache.calcite.rel.RelNode;
-import org.apache.calcite.sql.SqlExplainFormat;
-import org.apache.calcite.sql.SqlExplainLevel;
 import org.vaultdb.TpcHBaseTest;
 import org.vaultdb.codegen.JSONGenerator;
 import org.vaultdb.config.SystemConfiguration;
@@ -18,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.nio.file.Paths;
 import java.nio.file.Files;
-import org.apache.calcite.util.Pair;
 
 
 public class QueryPlanToJSONMPCMinimizationTest extends TpcHBaseTest {
@@ -39,46 +33,46 @@ public class QueryPlanToJSONMPCMinimizationTest extends TpcHBaseTest {
         // hardcode TPC-H integrity constraints
         integrityConstraints = new ArrayList<Map<String, String> >();
 
-        Map<String, String>  fk = new HashMap<>();
-        fk.put("n_regionkey", "r_regionkey");
-        integrityConstraints.add(fk);
+        Map<String, String>  nr = new HashMap<>();
+        nr.put("n_regionkey", "r_regionkey");
+        integrityConstraints.add(nr);
 
-        fk.clear();
-        fk.put("c_nationkey", "n_nationkey");
-        integrityConstraints.add(fk);
+        Map<String, String>  cn = new HashMap<>();
+        cn.put("c_nationkey", "n_nationkey");
+        integrityConstraints.add(cn);
 
-        fk.clear();
-        fk.put("s_nationkey", "n_nationkey");
-        integrityConstraints.add(fk);
+        Map<String, String>  sn = new HashMap<>();
+        sn.put("s_nationkey", "n_nationkey");
+        integrityConstraints.add(sn);
 
-        fk.clear();
-        fk.put("o_custkey", "c_custkey");
-        integrityConstraints.add(fk);
+        Map<String, String>  oc = new HashMap<>();
+        oc.put("o_custkey", "c_custkey");
+        integrityConstraints.add(oc);
 
-        fk.clear();
-        fk.put("l_orderkey", "o_orderkey");
-        integrityConstraints.add(fk);
+        Map<String, String>  lo = new HashMap<>();
+        lo.put("l_orderkey", "o_orderkey");
+        integrityConstraints.add(lo);
 
-        fk.clear();
-        fk.put("l_partkey", "p_partkey");
-        integrityConstraints.add(fk);
+        Map<String, String>  lp = new HashMap<>();
+        lp.put("l_partkey", "p_partkey");
+        integrityConstraints.add(lp);
 
-        fk.clear();
-        fk.put("l_suppkey", "s_suppkey");
-        integrityConstraints.add(fk);
+        Map<String, String>  ls = new HashMap<>();
+        ls.put("l_suppkey", "s_suppkey");
+        integrityConstraints.add(ls);
 
-        fk.clear();
-        fk.put("ps_partkey", "p_partkey");
-        integrityConstraints.add(fk);
+        Map<String, String>  psp = new HashMap<>();
+        psp.put("ps_partkey", "p_partkey");
+        integrityConstraints.add(psp);
 
-        fk.clear();
-        fk.put("ps_suppkey", "s_suppkey");
-        integrityConstraints.add(fk);
+        Map<String, String>  pss = new HashMap<>();
+        pss.put("ps_suppkey", "s_suppkey");
+        integrityConstraints.add(pss);
 
-        fk.clear();
-        fk.put("l_partkey", "ps_partkey");
-        fk.put("l_suppkey", "ps_suppkey");
-        integrityConstraints.add(fk);
+        Map<String, String>  lps = new HashMap<>();
+        lps.put("l_partkey", "ps_partkey");
+        lps.put("l_suppkey", "ps_suppkey");
+        integrityConstraints.add(lps);
 
     }
 
@@ -225,8 +219,6 @@ public class QueryPlanToJSONMPCMinimizationTest extends TpcHBaseTest {
 
         System.out.println("Parsing " + sql);
         SecureRelRoot root = new SecureRelRoot(testName, sql);
-
-        System.out.println("Logical plan: " + root);
 
         String plan = JSONGenerator.extractMPCMinimizedQueryPlan(root.getPlanRoot().getSecureRelNode(), integrityConstraints);
 
