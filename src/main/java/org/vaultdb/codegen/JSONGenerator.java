@@ -206,7 +206,6 @@ public class JSONGenerator {
 
         JsonArray dstArray = dstRelBuilder.build();
         JsonObject j = Json.createObjectBuilder().add("rels", dstArray).build();
-        System.out.println("addPKFKRelationships  ending with " +  prettyPrintJson(j));
 
         return j;
 
@@ -233,7 +232,6 @@ public class JSONGenerator {
             if (node.getString("relOp").equals("LogicalValues")) {
                 Integer oldKey = keyPos.next();
                 dst.put(i, relNodes.get(oldKey));
-                System.out.println(oldKey + " -> " + i);
             }
 
         }
@@ -249,7 +247,6 @@ public class JSONGenerator {
             if (!node.getString("relOp").equals("LogicalValues")) {
                 Integer oldKey = keyPos.next();
                 dst.put(i, relNodes.get(oldKey));
-                System.out.println(oldKey + " -> " + i);
             }
         }
 
@@ -279,9 +276,6 @@ public class JSONGenerator {
                 // Idx 1 + (idx  - 1) * 2 - may  need to frame this as a stack of inputs to get the right one as needed.
                 Integer operatorNo = (idx < 2) ? idx : 1 + (idx - 1) * 2;
 
-                RelNode childRelNode = child.getRelNode();
-                List<RelCollation> sortOrder = childRelNode.getCollationList(); // TODO: fix this to use non-deprecated methods later
-                System.out.println("Collation: " + sortOrder);
 
                 String sql = SqlGenerator.getSourceSql(child.getPhysicalNode());
                 sqlNodes.put(operatorNo, sql);
@@ -446,16 +440,21 @@ public class JSONGenerator {
             RelNode relNode = aligned.get(i);
 
 
-             JsonObjectBuilder builder = Json.createObjectBuilder();
-            for(Iterator<String> keys = node.keySet().iterator(); keys.hasNext(); ) {
-                String key = keys.next();
-                builder.add(key, node.get(key));
-            }
+            JsonObjectBuilder builder = Json.createObjectBuilder();
+            Iterator<String> keys = node.keySet().iterator();
+            // add Id and RelOp first
+            String id = keys.next();
+            builder.add(id, node.get(id));
+
+            String relOp = keys.next();
+            builder.add(relOp, node.get(relOp));
+
+            // add field list
             if(relNode instanceof LogicalJoin || relNode instanceof LogicalFilter || relNode instanceof LogicalSort
                     || relNode instanceof LogicalTableScan || relNode instanceof LogicalValues) {
                 String schema = prettyPrintSchema(relNode.getRowType());
                 JsonValue schemaVal = Json.createValue(schema);
-                builder.add("fields", schemaVal);
+                builder.add("outputFields", schemaVal);
             }
             else if(relNode instanceof LogicalAggregate || relNode instanceof LogicalProject) {
                 String inputSchema = prettyPrintSchema(relNode.getInput(0).getRowType());
@@ -463,6 +462,12 @@ public class JSONGenerator {
 
                 builder.add("inputFields", Json.createValue(inputSchema));
                 builder.add("outputFields", Json.createValue(outputSchema));
+            }
+
+            // add remaining metadata
+            while( keys.hasNext()) {
+                String key = keys.next();
+                builder.add(key, node.get(key));
             }
 
             JsonObject newRelNode = builder.build();
