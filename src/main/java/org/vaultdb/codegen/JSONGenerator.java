@@ -6,7 +6,7 @@ import jakarta.json.*;
 import org.apache.calcite.plan.RelOptUtil;
 import org.apache.calcite.rel.RelCollation;
 import org.apache.calcite.rel.RelNode;
-import org.apache.calcite.rel.logical.LogicalJoin;
+import org.apache.calcite.rel.logical.*;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeField;
 import org.apache.calcite.rex.*;
@@ -115,9 +115,8 @@ public class JSONGenerator {
 
         // first pass: add "sql" tag to each leaf node
         JsonObject withSql = addSqlTagToLeafs(rootJSON, planNodes);
-        System.out.println("Relnode tree: ");
-        System.out.println(RelOptUtil.dumpPlan("", localCopy, SqlExplainFormat.TEXT, SqlExplainLevel.ALL_ATTRIBUTES));
-        JsonObject dst = addPKFKRelationships(withSql, localCopy, integrityConstraints);
+        JsonObject withFields = addFieldList(withSql, localCopy);
+        JsonObject dst = addPKFKRelationships(withFields, localCopy, integrityConstraints);
 
         // pretty print it
         return prettyPrintJson(dst);
@@ -168,16 +167,13 @@ public class JSONGenerator {
         extractRelNodes(root, relNodes);
         Map<Integer, RelNode> aligned = remapRelNodesToJsonIds(relNodes, src.getJsonArray("rels"));
 
-        System.out.println("addPKFKRelationships  starting with " + prettyPrintJson(src));
-
         JsonArray rels = src.getJsonArray("rels");
         JsonArrayBuilder dstRelBuilder = Json.createArrayBuilder();
 
         for (int i = 0; i < rels.size(); i++) {
 
             JsonObject node = rels.getJsonObject(i);
-            int id = Integer.parseInt(node.getString("id"));
-            RelNode relNode = aligned.get(id);
+            RelNode relNode = aligned.get(i);
 
             if (relNode instanceof LogicalJoin) {
                 // check for PK-FK relationships
@@ -424,10 +420,58 @@ public class JSONGenerator {
         return  mapper.writeValueAsString(obj);
     }
 
+    public static String prettyPrintSchema(RelDataType schema) {
+        String ret = "(#0: " + schema.getFieldList().get(0).getName() + " " + schema.getFieldList().get(0).getType().toString();
+
+        for(int i = 1; i < schema.getFieldCount(); i++) {
+            RelDataTypeField field = schema.getFieldList().get(i);
+            ret += ", #" + i + ": " + field.getName() + " " + field.getType().toString();
+        }
+        ret += ")";
+        return ret;
+    }
+
     // for scans, sorts, joins, and filter, add "fields" tag for output schema
     // for aggregate and projection, add "inputFields" and "outputFields" tags
-    static JsonObject addFieldList(JsonObject src, RelNode root) {
+    static JsonObject addFieldList(JsonObject src, RelNode root) throws Exception {
+        Map<Integer, RelNode> relNodes = new HashMap<>();
+        extractRelNodes(root, relNodes);
+        Map<Integer, RelNode> aligned = remapRelNodesToJsonIds(relNodes, src.getJsonArray("rels"));
+
+        JsonArray rels = src.getJsonArray("rels");
+        JsonArrayBuilder dstRelBuilder = Json.createArrayBuilder();
+
+        for (int i = 0; i < rels.size(); i++) {
+            JsonObject node = rels.getJsonObject(i);
+            RelNode relNode = aligned.get(i);
 
 
+             JsonObjectBuilder builder = Json.createObjectBuilder();
+            for(Iterator<String> keys = node.keySet().iterator(); keys.hasNext(); ) {
+                String key = keys.next();
+                builder.add(key, node.get(key));
+            }
+            if(relNode instanceof LogicalJoin || relNode instanceof LogicalFilter || relNode instanceof LogicalSort
+                    || relNode instanceof LogicalTableScan || relNode instanceof LogicalValues) {
+                String schema = prettyPrintSchema(relNode.getRowType());
+                JsonValue schemaVal = Json.createValue(schema);
+                builder.add("fields", schemaVal);
+            }
+            else if(relNode instanceof LogicalAggregate || relNode instanceof LogicalProject) {
+                String inputSchema = prettyPrintSchema(relNode.getInput(0).getRowType());
+                String outputSchema = prettyPrintSchema(relNode.getRowType());
+
+                builder.add("inputFields", Json.createValue(inputSchema));
+                builder.add("outputFields", Json.createValue(outputSchema));
+            }
+
+            JsonObject newRelNode = builder.build();
+            dstRelBuilder.add(newRelNode);
+        }
+
+        return Json.createObjectBuilder().add("rels", dstRelBuilder.build()).build();
     }
+
+
+
 }
