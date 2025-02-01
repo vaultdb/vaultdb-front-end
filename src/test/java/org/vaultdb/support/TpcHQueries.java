@@ -222,14 +222,28 @@ public class TpcHQueries {
                     + "  cust_nation,\n"
                     + "  l_year",
             // 08 - original
-            "SELECT   o_year, SUM(CASE WHEN  n_nation = 'KENYA' THEN volume ELSE 0.0 END) / SUM(VOLUME) AS mkt_share "
-            + "FROM ( SELECT CAST(o_orderyear AS INT) AS o_year, l.l_extendedprice * (1 - l.l_discount) AS volume,  n2.n_name as n_nation "
-            + "       FROM part p, supplier s, lineitem l, orders o, customer c, nation n1, nation n2, region r "
-            + "       WHERE p.p_partkey = l.l_partkey AND s.s_suppkey = l.l_suppkey AND l.l_orderkey = o.o_orderkey AND  o.o_custkey = c.c_custkey "
-            + "             AND c.c_nationkey = n1.n_nationkey AND n1.n_regionkey = r.r_regionkey AND r.r_name = 'AFRICA' AND s.s_nationkey = n2.n_nationkey "
-            + "             AND o.o_orderdate BETWEEN DATE '1995-01-01' AND DATE '1996-12-31' AND  p.p_type = 'LARGE ANODIZED STEEL') AS all_nations "
-            + "GROUP BY o_year "
-            + "ORDER BY o_year",
+//            "SELECT   o_year, SUM(CASE WHEN  n_nation = 'KENYA' THEN volume ELSE 0.0 END) / SUM(VOLUME) AS mkt_share "
+//            + "FROM ( SELECT CAST(o_orderyear AS INT) AS o_year, l.l_extendedprice * (1 - l.l_discount) AS volume,  n2.n_name as n_nation "
+//            + "       FROM part p, supplier s, lineitem l, orders o, customer c, nation n1, nation n2, region r "
+//            + "       WHERE p.p_partkey = l.l_partkey AND s.s_suppkey = l.l_suppkey AND l.l_orderkey = o.o_orderkey AND  o.o_custkey = c.c_custkey "
+//            + "             AND c.c_nationkey = n1.n_nationkey AND n1.n_regionkey = r.r_regionkey AND r.r_name = 'AFRICA' AND s.s_nationkey = n2.n_nationkey "
+//            + "             AND o.o_orderdate BETWEEN DATE '1995-01-01' AND DATE '1996-12-31' AND  p.p_type = 'LARGE ANODIZED STEEL') AS all_nations "
+//            + "GROUP BY o_year "
+//            + "ORDER BY o_year",
+
+            // 08 - modified to make join keys easier to parse
+            "WITH cnr AS (SELECT c_custkey "
+               + "FROM customer JOIN nation ON c_nationkey = n_nationkey "
+               + "  JOIN region ON n_regionkey = r_regionkey "
+               + "WHERE r_name = 'AFRICA') "
+            + "SELECT   o_year, SUM(CASE WHEN  n_nation = 'KENYA' THEN volume ELSE 0.0 END) / SUM(VOLUME) AS mkt_share "
+                    + "FROM ( SELECT CAST(o_orderyear AS INT) AS o_year, l.l_extendedprice * (1 - l.l_discount) AS volume,  n.n_name as n_nation "
+                    + "       FROM part p, supplier s, lineitem l, orders o, cnr c,  nation n "
+                    + "       WHERE p.p_partkey = l.l_partkey AND s.s_suppkey = l.l_suppkey AND l.l_orderkey = o.o_orderkey AND  o.o_custkey = c.c_custkey "
+                    + "             AND s.s_nationkey = n.n_nationkey "
+                    + "             AND o.o_orderdate BETWEEN DATE '1995-01-01' AND DATE '1996-12-31' AND  p.p_type = 'LARGE ANODIZED STEEL') AS all_nations "
+                    + "GROUP BY o_year "
+                    + "ORDER BY o_year",
 
             // 09
             "WITH order_years AS (\n"
