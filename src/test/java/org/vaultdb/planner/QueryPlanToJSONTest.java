@@ -113,8 +113,6 @@ public class QueryPlanToJSONTest extends TpcHBaseTest {
 
         System.out.println("Parsing " + sql);
         SecureRelRoot root = new SecureRelRoot(testName, sql);
-
-        String logicalPlan = RelOptUtil.dumpPlan("", root.getRelRoot().rel, SqlExplainFormat.TEXT, SqlExplainLevel.ALL_ATTRIBUTES);
         System.out.println("Logical plan: " + root);
 
         String plan = JSONGenerator.exportQueryPlan(root.getPlanRoot().getSecureRelNode(), testName);
