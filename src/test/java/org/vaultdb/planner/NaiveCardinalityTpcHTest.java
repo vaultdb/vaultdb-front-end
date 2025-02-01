@@ -39,7 +39,7 @@ public class NaiveCardinalityTpcHTest extends TpcHBaseTest {
   }
 
   public void testQuery05() throws Exception {
-    long expected = 150000 * 1000 * 25 * 20000 * 600000 * 25 * 5 * 15000; // TODO: Rohith, please check this
+    long expected = 150000 * 1000 * 25 * 20000 * 600000 * 25 * 5 * 15000;
     runTest(5, expected);
   }
 
