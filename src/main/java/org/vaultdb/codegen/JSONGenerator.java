@@ -160,21 +160,6 @@ public class JSONGenerator {
         return Json.createObjectBuilder().add("rels", dst_array).build();
     }
 
-    // Q5:
-    // LogicalSort(sort0=[$1], dir0=[DESC]): rowcount = 1.0, cumulative cost = 14.137500047683716, id = 221
-    //  LogicalAggregate(group=[{0}], revenue=[SUM($1)]): rowcount = 1.0, cumulative cost = 13.137500047683716, id = 220
-    //    LogicalProject(n_name=[$11], $f1=[*($6, -(1, $7))]): rowcount = 1.0, cumulative cost = 12.0, id = 219
-    //      LogicalJoin(condition=[=($12, $13)], joinType=[inner]): rowcount = 1.0, cumulative cost = 11.0, id = 218
-    //        LogicalJoin(condition=[=($9, $10)], joinType=[inner]): rowcount = 1.0, cumulative cost = 9.0, id = 213
-    //          LogicalJoin(condition=[AND(=($5, $8), =($1, $9))], joinType=[inner]): rowcount = 1.0, cumulative cost = 7.0, id = 207
-    //            LogicalJoin(condition=[=($4, $2)], joinType=[inner]): rowcount = 1.0, cumulative cost = 5.0, id = 206
-    //              LogicalJoin(condition=[=($0, $3)], joinType=[inner]): rowcount = 1.0, cumulative cost = 3.0, id = 198
-    //                LogicalValues(tuples=[[]]): rowcount = 1.0, cumulative cost = {1.0 rows, 1.0 cpu, 0.0 io}, id = 178
-    //                LogicalValues(tuples=[[]]): rowcount = 1.0, cumulative cost = {1.0 rows, 1.0 cpu, 0.0 io}, id = 179
-    //              LogicalValues(tuples=[[]]): rowcount = 1.0, cumulative cost = {1.0 rows, 1.0 cpu, 0.0 io}, id = 180
-    //            LogicalValues(tuples=[[]]): rowcount = 1.0, cumulative cost = {1.0 rows, 1.0 cpu, 0.0 io}, id = 181
-    //          LogicalValues(tuples=[[]]): rowcount = 1.0, cumulative cost = {1.0 rows, 1.0 cpu, 0.0 io}, id = 182
-    //        LogicalValues(tuples=[[]]): rowcount = 1.0, cumulative cost = {1.0 rows, 1.0 cpu, 0.0 io}, id = 183
 
     static JsonObject addPKFKRelationships(JsonObject src, RelNode root, ArrayList<Map<String, String>> integrityConstraints) throws Exception {
 
@@ -197,12 +182,10 @@ public class JSONGenerator {
             if (relNode instanceof LogicalJoin) {
                 // check for PK-FK relationships
                 LogicalJoin join = (LogicalJoin) relNode;
-                RexNode predicate = join.getCondition();
                 RexBuilder rexBuilder = join.getCluster().getRexBuilder();
-                RexNode joinOn = RexUtil.toCnf(rexBuilder, predicate);
+                RexNode joinOn = RexUtil.toCnf(rexBuilder, join.getCondition());
                 Map<String, String> joinKeys = new HashMap<>();
                 extractJoinKeys(joinOn, join.getRowType(), joinKeys);
-
 
                 // check if joinKeys are in integrityConstraints
                 int fkRelation = getForeignKeyRelationship(joinKeys, integrityConstraints);
@@ -239,7 +222,6 @@ public class JSONGenerator {
 
     static Map<Integer, RelNode> remapRelNodesToJsonIds(Map<Integer, RelNode> relNodes, JsonArray jsonOps) {
         Map<Integer, RelNode> dst = new HashMap<>();
-        int operatorIdCounter = 0;
 
         assert (relNodes.size() <= jsonOps.size() - 1);
         List<Integer> sortedKeys = relNodes.keySet().stream().sorted().collect(Collectors.toList());
@@ -247,11 +229,7 @@ public class JSONGenerator {
 
         // map to BFS order
         // Planner first serializes leafs, and seems to place remaining ops in BFS order
-        // occasionally it throws an extra projection on top.
-
-
-        Map<Integer, RelNode> leafs = new HashMap<>();
-        Map<Integer, RelNode> internalNodes = new HashMap<>();
+        // sometimes it throws an extra projection on top.
 
         // serialize LogicalValues first
         for (int i = 0; i < jsonOps.size(); i++) {
@@ -260,7 +238,6 @@ public class JSONGenerator {
                 Integer oldKey = keyPos.next();
                 dst.put(i, relNodes.get(oldKey));
                 System.out.println(oldKey + " -> " + i);
-//                ++operatorIdCounter;
             }
 
         }
@@ -277,7 +254,6 @@ public class JSONGenerator {
                 Integer oldKey = keyPos.next();
                 dst.put(i, relNodes.get(oldKey));
                 System.out.println(oldKey + " -> " + i);
-//                ++operatorIdCounter;
             }
         }
 
@@ -448,4 +424,10 @@ public class JSONGenerator {
         return  mapper.writeValueAsString(obj);
     }
 
+    // for scans, sorts, joins, and filter, add "fields" tag for output schema
+    // for aggregate and projection, add "inputFields" and "outputFields" tags
+    static JsonObject addFieldList(JsonObject src, RelNode root) {
+
+
+    }
 }
