@@ -461,41 +461,34 @@ public class TpcHQueries {
                     + "      ) as l1 ON  l1.l_partkey = t_partkey ) a\n"
                     + "where quantity < t_avg_quantity\n",
 
-            // 18
-            "select\n"
-                    + "  c.c_name,\n"
-                    + "  c.c_custkey,\n"
-                    + "  o.o_orderkey,\n"
-                    + "  o.o_orderdate,\n"
-                    + "  o.o_totalprice,\n"
-                    + "  sum(l.l_quantity)\n"
-                    + "from\n"
-                    + "  customer c,\n"
-                    + "  orders o,\n"
-                    + "  lineitem l\n"
-                    + "where\n"
-                    + "  o.o_orderkey in (\n"
-                    + "    select\n"
-                    + "      l_orderkey\n"
-                    + "    from\n"
-                    + "      lineitem\n"
-                    + "    group by\n"
-                    + "      l_orderkey having\n"
-                    + "        sum(l_quantity) > 7\n"
-                    + "  )\n"
-                    + "  and c.c_custkey = o.o_custkey\n"
-                    + "  and o.o_orderkey = l.l_orderkey\n"
-                    + "group by\n"
-                    + "  c.c_name,\n"
-                    + "  c.c_custkey,\n"
-                    + "  o.o_orderkey,\n"
-                    + "  o.o_orderdate,\n"
-                    + "  o.o_totalprice\n"
-                    + "order by\n"
-                    + "  o.o_totalprice desc,\n"
-                    + "  o.o_orderdate\n"
-                    + "limit 100",
+            // 18 - original
+//            "select c.c_name, c.c_custkey, o.o_orderkey, o.o_orderdate, o.o_totalprice, sum(l.l_quantity) \n"
+//            + "from  customer c,  orders o, lineitem l \n"
+//            + "where  o.o_orderkey in (\n"
+//            + "    select l_orderkey \n"
+//            + "    from lineitem \n"
+//            + "    group by  l_orderkey "
+//            + "    having  sum(l_quantity) > 7) \n"
+//            + "  and c.c_custkey = o.o_custkey  and o.o_orderkey = l.l_orderkey \n"
+//            + "group by  c.c_name,  c.c_custkey, o.o_orderkey, o.o_orderdate, o.o_totalprice\n"
+//            + "order by  o.o_totalprice desc, o.o_orderdate "
+//            + "limit 100",
 
+            // 18 - modified to avoid naming collision on l_orderkey
+            "WITH selected_orders AS (" +
+                    "SELECT o_orderkey, o_orderdate, o_totalprice, o_custkey " +
+                    "FROM orders " +
+                    "WHERE o_orderkey IN (" +
+                    "    SELECT l_orderkey " +
+                    "    FROM lineitem " +
+                    "    GROUP BY l_orderkey " +
+                    "    HAVING SUM(l_quantity) > 7)) " +
+            "select c.c_name, c.c_custkey, o.o_orderkey, o.o_orderdate, o.o_totalprice, sum(l.l_quantity) \n"
+            + "from  customer c,  selected_orders o, lineitem l \n"
+                    + "where c.c_custkey = o.o_custkey  and o.o_orderkey = l.l_orderkey \n"
+                    + "group by  c.c_name,  c.c_custkey, o.o_orderkey, o.o_orderdate, o.o_totalprice\n"
+                    + "order by  o.o_totalprice desc, o.o_orderdate "
+                    + "limit 100",
             // 19
             "select\n"
                     + "  sum(l.l_extendedprice* (1 - l.l_discount)) as revenue\n"
